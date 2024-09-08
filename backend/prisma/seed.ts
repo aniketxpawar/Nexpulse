@@ -6,8 +6,12 @@ async function main() {
   // Add some sample data
   const user = await prisma.user.create({
     data: {
-      name: "John Doe",
+      fullName: "John Doe",
       email: "john@example.com",
+      password: "Aniket123",
+      phone:"9876543210",
+      city:"Mumbai",
+      role:"PATIENT"
     },
   });
 

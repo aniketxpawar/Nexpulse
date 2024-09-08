@@ -1,11 +1,15 @@
 import { execSync } from "child_process";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import morgan from "morgan";
+import appRouter from "./routers";
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use(morgan('dev'))
+app.use('/',appRouter)
 
 // Automatically run migrations and generate Prisma client
 try {

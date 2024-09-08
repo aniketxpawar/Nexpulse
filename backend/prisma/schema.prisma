@@ -15,9 +15,115 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  name      String
+  role      Role
+  fullName  String
   email     String   @unique
+  password  String
+  phone     String   @db.VarChar(10)
+  city      String
+  isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt() @default(now())
+  
+  // Relations
+  Doctor    Doctor?
+  Patient   Patient?
+  Chats     Chat[]    @relation("UserChats")
+  Messages  Message[]
 }
 
+model Doctor {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @unique
+  specialization     String
+  experience         Int
+  licenseNumber      String   @unique
+  licenseAuthority   String
+  licenseExpiry      DateTime
+  availability       Json
+  consultationCharge Float
+  clinicAddress      String
+  profile            String?
+  createdAt          DateTime @default(now())
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id])
+  Chats        Chat[]      @relation("DoctorChats")
+  Appointments Appointment[]
+}
+
+model Patient {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  dob       DateTime
+  gender    Gender
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id])
+  Chats        Chat[]      @relation("PatientChats")
+  Appointments Appointment[]
+}
+
+model Appointment {
+  id              Int      @id @default(autoincrement())
+  doctorId        Int
+  patientId       Int
+  appointmentDate DateTime
+  status          AppointmentStatus
+  type            AppointmentType
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  Doctor   Doctor   @relation(fields: [doctorId], references: [id])
+  Patient  Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Chat {
+  id           Int      @id @default(autoincrement())
+  doctorId     Int
+  patientId    Int
+  isActivated  Boolean
+  isBlocked    Boolean
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  Doctor   Doctor   @relation("DoctorChats", fields: [doctorId], references: [id])
+  Patient  Patient  @relation("PatientChats", fields: [patientId], references: [id])
+  Users    User[]   @relation("UserChats")
+  Messages Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  senderId  Int
+  message   String
+  isDeleted Boolean
+  createdAt DateTime @default(now())
+  
+  // Relations
+  Chat     Chat     @relation(fields: [chatId], references: [id])
+  User     User     @relation(fields: [senderId], references: [id])
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CANCELED
+  COMPLETED
+}
+
+enum AppointmentType {
+  ONLINE
+  OFFLINE
+}
