@@ -15,41 +15,36 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  role      Role
   fullName  String
+  role      Role
   email     String   @unique
   password  String
   phone     String   @db.VarChar(10)
-  city      String
-  isActive  Boolean  @default(false)
+  city      String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt() @default(now())
   
-  // Relations
-  Doctor    Doctor?
-  Patient   Patient?
-  Chats     Chat[]    @relation("UserChats")
-  Messages  Message[]
+  doctor    Doctor?
+  patient   Patient?
+  messages  Message[] @relation("UserMessages")
+  chats     ChatParticipant[]  // Add the inverse relation here
 }
 
 model Doctor {
-  id                 Int      @id @default(autoincrement())
-  userId             Int      @unique
-  specialization     String
-  experience         Int
-  licenseNumber      String   @unique
-  licenseAuthority   String
-  licenseExpiry      DateTime
-  availability       Json
+  id                Int      @id @default(autoincrement())
+  userId            Int      @unique
+  specialization    String
+  experience        Int
+  licenseNumber     String   @unique
+  licenseAuthority  String
+  licenseExpiry     DateTime
+  availability      Json
   consultationCharge Float
-  clinicAddress      String
-  profile            String?
-  createdAt          DateTime @default(now())
-  
-  // Relations
-  user         User        @relation(fields: [userId], references: [id])
-  Chats        Chat[]      @relation("DoctorChats")
-  Appointments Appointment[]
+  clinicAddress     String
+  profile           String?
+  createdAt         DateTime @default(now())
+
+  user        User       @relation(fields: [userId], references: [id])
+  appointments Appointment[]
 }
 
 model Patient {
@@ -59,71 +54,72 @@ model Patient {
   gender    Gender
   createdAt DateTime @default(now())
   
-  // Relations
-  user         User        @relation(fields: [userId], references: [id])
-  Chats        Chat[]      @relation("PatientChats")
-  Appointments Appointment[]
+  user        User        @relation(fields: [userId], references: [id])
+  appointments Appointment[]
 }
 
 model Appointment {
-  id              Int      @id @default(autoincrement())
-  doctorId        Int
-  patientId       Int
-  appointmentDate DateTime
-  status          AppointmentStatus
-  type            AppointmentType
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  Doctor   Doctor   @relation(fields: [doctorId], references: [id])
-  Patient  Patient  @relation(fields: [patientId], references: [id])
+  id               Int      @id @default(autoincrement())
+  doctorId         Int
+  patientId        Int
+  appointmentDate  DateTime
+  status           AppointmentStatus
+  type             AppointmentType
+  createdAt        DateTime @default(now())
+
+  doctor  Doctor   @relation(fields: [doctorId], references: [id])
+  patient Patient  @relation(fields: [patientId], references: [id])
 }
 
 model Chat {
-  id           Int      @id @default(autoincrement())
-  doctorId     Int
-  patientId    Int
-  isActivated  Boolean
-  isBlocked    Boolean
-  createdAt    DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  isActivated Boolean
+  isBlocked   Boolean
+  createdAt   DateTime @default(now())
   
-  // Relations
-  Doctor   Doctor   @relation("DoctorChats", fields: [doctorId], references: [id])
-  Patient  Patient  @relation("PatientChats", fields: [patientId], references: [id])
-  Users    User[]   @relation("UserChats")
-  Messages Message[]
+  messages     Message[] 
+  participants ChatParticipant[]  // Add the inverse relation here
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  chatId    Int
-  senderId  Int
-  message   String
-  isDeleted Boolean
-  createdAt DateTime @default(now())
-  
-  // Relations
-  Chat     Chat     @relation(fields: [chatId], references: [id])
-  User     User     @relation(fields: [senderId], references: [id])
+  id         Int      @id @default(autoincrement())
+  chatId     Int
+  senderId   Int
+  message    String
+  isDeleted  Boolean
+  createdAt  DateTime @default(now())
+
+  chat   Chat   @relation(fields: [chatId], references: [id])
+  sender User   @relation(fields: [senderId], references: [id], name: "UserMessages")
+}
+
+model ChatParticipant {
+  chatId  Int
+  userId  Int
+
+  chat   Chat   @relation(fields: [chatId], references: [id])  // Already defined correctly
+  user   User   @relation(fields: [userId], references: [id])  // Already defined correctly
+
+  @@id([chatId, userId])
 }
 
 enum Role {
-  PATIENT
-  DOCTOR
+  patient
+  doctor
 }
 
 enum Gender {
-  MALE
-  FEMALE
+  male
+  female
 }
 
 enum AppointmentStatus {
-  SCHEDULED
-  CANCELED
-  COMPLETED
+  scheduled
+  canceled
+  completed
 }
 
 enum AppointmentType {
-  ONLINE
-  OFFLINE
+  online
+  offline
 }

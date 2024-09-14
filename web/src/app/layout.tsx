@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
+import ChatProvider from "@/socket/chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,21 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en"
-    suppressHydrationWarning
-    className="antialiased">
+    <html lang="en" suppressHydrationWarning className="antialiased">
       <body className={inter.className}>
-          <main
-            className={`flex min-h-screen flex-col ${inter.className}`}
-          >
+        <main className={`flex min-h-screen flex-col ${inter.className}`}>
+          <ChatProvider>
             <Header />
-            <div className="flex flex-1 justify-center w-full">
-              <div className="flex w-full h-full">
-                {children}
-              </div>
-            </div>
+            {children}
             <Footer />
-          </main>
+          </ChatProvider>
+        </main>
       </body>
     </html>
   );
