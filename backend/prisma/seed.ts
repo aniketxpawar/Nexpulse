@@ -1,29 +1,21 @@
+import fs from 'fs';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // Add some sample data
-  const user = await prisma.user.create({
+async function insertImage(imagePath:string, imageName:string) {
+  const imageData = fs.readFileSync(imagePath);
+
+  await prisma.image.create({
     data: {
-      fullName: "John Doe",
-      email: "john@example.com",
-      password: "Aniket123",
-      phone:"9876543210",
-      city:"Mumbai",
-      role:"PATIENT"
+      imageData,
+      imageName,
+      userId: 2
     },
   });
-
-  console.log({ user });
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+// Usage example
+insertImage('./prisma/models/patient-image.webp', 'Manish Gupta Image')
+  .catch(e => console.error(e))
+  .finally(() => prisma.$disconnect());

@@ -39,6 +39,7 @@ export default (io: Server) => {
         });
 
         const chats = await chatService.getAllChats(Number(userId));
+        
         const result: Record<number, Omit<any, "id">> = {};
 
         // Store the remaining chat properties using id as key

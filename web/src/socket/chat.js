@@ -1,15 +1,18 @@
 "use client";
 import { io, Socket } from "socket.io-client";
 import { createContext, useEffect, useState, ReactNode, useMemo } from "react";
+import { useDispatch } from "react-redux";
+import { chatActions } from "@/redux/chatSlice";
 
 // Define the ChatContext here, including the socket type as context value
 const ChatContext = createContext(null);
 
 export default function ChatProvider({ children }) {
   const [socket, setSocket] = useState(null);
+  const dispatch = useDispatch()
 
   const handleInit = (data) => {
-    console.log(data);
+    dispatch(chatActions.setChatrooms(data))
   };
 
   useEffect(() => {

@@ -30,7 +30,25 @@ export const chatService = {
       include: {
         participants: {
           include: {
-            user: true, // Fetch full User details, not just ChatParticipant
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                role:true,
+                profilePic: {
+                  select: {
+                    id: true,
+                    // imageData: true,
+                    imageName: true, 
+                  },
+                },
+                doctor:{
+                  select:{
+                    specialization: true
+                  }
+                }
+              },
+            },
           },
         },
       },
