@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   activeChatroomId: null,
+  messages: [],
   chatrooms: {},
   offset: 0,
 };

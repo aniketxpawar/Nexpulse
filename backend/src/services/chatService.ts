@@ -55,6 +55,27 @@ export const chatService = {
     });
   },
 
+  async getMessagesByChat(chatId: number): Promise<Message[]> {
+    return await prisma.message.findMany({
+      where: {
+        chatId, // Fetch messages for the specified chat
+        isDeleted: false, // Only fetch non-deleted messages
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            fullName: true,
+            role: true
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc", // Order messages by creation time in descending order
+      },
+    });
+  },
+
   // Save a message to a chat room
   async saveMessage(
     chatId: number,

@@ -65,10 +65,14 @@ const ChatroomPage = () => {
               </div>
           </div>
 
-          <div className="h-full"></div>
+          <div className="h-full flex flex-col-reverse"></div>
 
           <div className="h-12 flex m-2">
-            <input placeholder="Enter the message" name="messageInput" className="border border-black w-full rounded-md" />
+            <form className="flex w-full gap-2">
+
+            <input placeholder="Enter the message" name="messageInput" className="border border-black w-full rounded-md px-2" />
+            <button className="h-12 w-20 bg-blue-600 rounded-md text-white text-lg font-semibold">Send</button>
+            </form>
           </div>
           </>
         ) : (
