@@ -6,6 +6,9 @@ import appRouter from "./routers";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import chatSocketHandler from "./socket/chatSocket";
+import { config } from 'dotenv';
+config();
+
 
 const app = express();
 const prisma = new PrismaClient();

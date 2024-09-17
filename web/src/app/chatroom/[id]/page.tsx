@@ -20,6 +20,39 @@ const ChatroomPage = () => {
   const [activeChatRoom,setActiveChatroom] = useState(null)
   const [otherUser,setOtherUser] = useState(null)
 
+  const [messageInput,setMessageInput] = useState("")
+
+  const messages = [{
+    senderId: 2,
+    message: "Hi"
+  },{
+    senderId: 1,
+    message: "Hello"
+  },{
+    senderId: 2,
+    message: "I wanted a appointmnet today"
+  },{
+    senderId: 1,
+    message: "Which time would you like, morning or evening?"
+  },{
+    senderId: 2,
+    message: "Evening"
+  },{
+    senderId: 1,
+    message: "We have slots at 7pm and 8:30pm"
+  },{
+    senderId: 2,
+    message: "8:30pm sounds good"
+  },]
+
+  const handleSubmit = () => {
+    const payload = {
+      chatId: activeChatRoomId,
+      senderId: userId,
+      message: messageInput
+    }
+  }
+
   useEffect(() => {
     if(id != activeChatRoomId) {
       dispatch(chatActions.setActiveRoomId(id))
@@ -65,13 +98,25 @@ const ChatroomPage = () => {
               </div>
           </div>
 
-          <div className="h-full flex flex-col-reverse"></div>
+          <div className="h-full flex flex-col-reverse gap-4 w-full p-2">
+          {messages?.reverse().map(({message, senderId}) => {
+            return (
+            <div className={`${senderId == userId ? "bg-gray-300" : "bg-blue-600"} 
+            ${senderId == userId ? "text-black" : "text-white"} p-2 px-4 rounded-full w-fit ${senderId == userId ? "ml-auto" : "mr-auto"}`}>
+              {message}
+            </div>)
+          })}
+          </div>
 
           <div className="h-12 flex m-2">
-            <form className="flex w-full gap-2">
+            <form className="flex w-full gap-2" onSubmit={handleSubmit}>
 
-            <input placeholder="Enter the message" name="messageInput" className="border border-black w-full rounded-md px-2" />
-            <button className="h-12 w-20 bg-blue-600 rounded-md text-white text-lg font-semibold">Send</button>
+            <input 
+              placeholder="Enter the message" 
+              name="messageInput"
+              onChange={(e) => {e.preventDefault(); setMessageInput(e.target.value)}} 
+              className="border border-black w-full rounded-md px-2" />
+            <button type="submit" className="h-12 w-20 bg-blue-600 rounded-md text-white text-lg font-semibold">Send</button>
             </form>
           </div>
           </>
