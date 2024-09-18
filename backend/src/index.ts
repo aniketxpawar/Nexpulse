@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import morgan from "morgan";
+import cors from "cors";
 import appRouter from "./routers";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -14,6 +15,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use(cors())
 app.use(morgan("dev"));
 
 // Automatically run migrations and generate Prisma client

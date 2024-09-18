@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import ChatList from "@/components/chatroom/ChatList";
 import { chatActions } from "@/redux/chatSlice";
+import axios from "axios"
 
 const convertBinaryToBase64 = (binaryData: Uint8Array) => {
   return `data:image/jpeg;base64,${Buffer.from(binaryData).toString("base64")}`;
@@ -13,6 +14,8 @@ const convertBinaryToBase64 = (binaryData: Uint8Array) => {
 const ChatroomPage = () => {
   const { id } = useParams(); // Extract chatroomId from the dynamic route
   const chatrooms: any = useSelector((state: RootState) => state.chat.chatrooms);
+  const messages: any = useSelector((state: RootState) => state.chat.messages);
+  console.log(messages)
   const dispatch = useDispatch()
   const activeChatRoomId: any = useSelector((state: RootState) => state.chat.activeChatroomId);
   const userId = Number(localStorage.getItem("userId"));
@@ -22,7 +25,7 @@ const ChatroomPage = () => {
 
   const [messageInput,setMessageInput] = useState("")
 
-  const messages = [{
+  const samplemessages = [{
     senderId: 2,
     message: "Hi"
   },{
@@ -53,6 +56,14 @@ const ChatroomPage = () => {
     }
   }
 
+  const handleFetchMessages = async (chatId: number) => {
+    const response = await axios.get('http://localhost:4000/chat/getMessagesByChatId/'+chatId)
+    console.log(response)
+    if(response?.status == 200){
+      dispatch(chatActions.setMessages(response.data.length > 0 ? response.data : samplemessages.reverse()))
+    }
+  }
+
   useEffect(() => {
     if(id != activeChatRoomId) {
       dispatch(chatActions.setActiveRoomId(id))
@@ -62,6 +73,7 @@ const ChatroomPage = () => {
       setActiveChatroom(chatrooms[activeChatRoomId])
       console.log(chatrooms[activeChatRoomId].participants.find((user:any) => user.id != userId))
       setOtherUser(chatrooms[activeChatRoomId].participants.find((user:any) => user.id != userId))
+      handleFetchMessages(activeChatRoomId)
     }
   },[id,activeChatRoomId,chatrooms])
 
@@ -99,7 +111,7 @@ const ChatroomPage = () => {
           </div>
 
           <div className="h-full flex flex-col-reverse gap-4 w-full p-2">
-          {messages?.reverse().map(({message, senderId}) => {
+          {messages?.map(({message, senderId}) => {
             return (
             <div className={`${senderId == userId ? "bg-gray-300" : "bg-blue-600"} 
             ${senderId == userId ? "text-black" : "text-white"} p-2 px-4 rounded-full w-fit ${senderId == userId ? "ml-auto" : "mr-auto"}`}>

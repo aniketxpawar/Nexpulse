@@ -17,6 +17,9 @@ const chatSlice = createSlice({
     },
     setActiveRoomId(state,{payload}){
       return {...state,activeChatroomId:payload}
+    },
+    setMessages(state, {payload}){
+      return {...state,messages:payload}
     }
   },
 });
