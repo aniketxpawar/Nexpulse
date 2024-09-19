@@ -58,6 +58,7 @@ export default (io: Server) => {
     // Handle sending messages
     socket.on("sendMessage", async (data: Message) => {
       const { chatId, senderId, message } = data;
+      console.log(data)
       try {
         const savedMessage = await chatService.saveMessage(
           chatId,
