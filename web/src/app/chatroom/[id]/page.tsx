@@ -52,6 +52,7 @@ const ChatroomPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if(!messageInput) return
 
     const payload = {
       chatId: Number(activeChatRoomId),
@@ -61,15 +62,15 @@ const ChatroomPage = () => {
 
     // Emit a sendMessage event
     socket?.emit("sendMessage", payload);
-
     setMessageInput("");
+
   }
 
   const handleFetchMessages = async (chatId: number) => {
     const response = await axios.get('http://localhost:4000/chat/getMessagesByChatId/'+chatId)
     console.log(response)
     if(response?.status == 200){
-      dispatch(chatActions.setMessages(response.data.length > 0 ? response.data : samplemessages.reverse()))
+      dispatch(chatActions.setMessages(response.data.messages.length > 0 ? response.data.messages : samplemessages.reverse()))
     }
   }
 
@@ -135,6 +136,7 @@ const ChatroomPage = () => {
             <input 
               placeholder="Enter the message" 
               name="messageInput"
+              value={messageInput}
               onChange={(e) => {e.preventDefault(); setMessageInput(e.target.value)}} 
               className="border border-black w-full rounded-md px-2" />
             <button type="submit" className="h-12 w-20 bg-blue-600 rounded-md text-white text-lg font-semibold">Send</button>

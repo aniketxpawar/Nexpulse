@@ -1,7 +1,7 @@
 "use client";
 import { io, Socket } from "socket.io-client";
 import { createContext, useEffect, useState, ReactNode, useMemo, useContext } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { chatActions } from "@/redux/chatSlice";
 
 // Define the ChatContext here, including the socket type as context value
@@ -9,11 +9,18 @@ const ChatContext = createContext(null);
 
 export default function ChatProvider({ children }) {
   const [socket, setSocket] = useState(null);
+  const activeChatroomId = useSelector((state) => state.chat.activeChatroomId);
   const dispatch = useDispatch()
 
   const handleInit = (data) => {
     dispatch(chatActions.setChatrooms(data))
   };
+
+  const handleReceiveMessage = (data) => {
+    if (data.chatId == activeChatroomId){
+      dispatch(chatActions.setNewMessage(data))
+    }
+  }
 
   useEffect(() => {
     if (!socket) {
@@ -57,6 +64,7 @@ export default function ChatProvider({ children }) {
   const eventHandlers = useMemo(() => {
     return {
       init: handleInit,
+      receiveMessage: handleReceiveMessage
     };
   }, [socket]);
 

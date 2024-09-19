@@ -20,6 +20,9 @@ const chatSlice = createSlice({
     },
     setMessages(state, {payload}){
       return {...state,messages:payload}
+    },
+    setNewMessage(state, {payload}){
+      return {...state,messages:[payload,...state.messages]}
     }
   },
 });
