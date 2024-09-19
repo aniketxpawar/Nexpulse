@@ -1,6 +1,6 @@
 "use client";
 import { io, Socket } from "socket.io-client";
-import { createContext, useEffect, useState, ReactNode, useMemo } from "react";
+import { createContext, useEffect, useState, ReactNode, useMemo, useContext } from "react";
 import { useDispatch } from "react-redux";
 import { chatActions } from "@/redux/chatSlice";
 
@@ -78,3 +78,11 @@ export default function ChatProvider({ children }) {
     <ChatContext.Provider value={{ socket }}>{children}</ChatContext.Provider>
   );
 }
+
+export const useChatSocket = () => {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error("useChatSocket must be used within a ChatProvider");
+  }
+  return context.socket;
+};

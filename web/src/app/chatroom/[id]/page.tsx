@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import ChatList from "@/components/chatroom/ChatList";
 import { chatActions } from "@/redux/chatSlice";
-import axios from "axios"
+import axios from "axios";
+import { useChatSocket } from "@/socket/chat";
 
 const convertBinaryToBase64 = (binaryData: Uint8Array) => {
   return `data:image/jpeg;base64,${Buffer.from(binaryData).toString("base64")}`;
@@ -13,6 +14,7 @@ const convertBinaryToBase64 = (binaryData: Uint8Array) => {
 
 const ChatroomPage = () => {
   const { id } = useParams(); // Extract chatroomId from the dynamic route
+  const socket = useChatSocket();
   const chatrooms: any = useSelector((state: RootState) => state.chat.chatrooms);
   const messages: any = useSelector((state: RootState) => state.chat.messages);
   console.log(messages)
@@ -48,12 +50,19 @@ const ChatroomPage = () => {
     message: "8:30pm sounds good"
   },]
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
     const payload = {
-      chatId: activeChatRoomId,
-      senderId: userId,
-      message: messageInput
-    }
+      chatId: Number(activeChatRoomId),
+      senderId: Number(userId),
+      message: messageInput,
+    };
+
+    // Emit a sendMessage event
+    socket?.emit("sendMessage", payload);
+
+    setMessageInput("");
   }
 
   const handleFetchMessages = async (chatId: number) => {
