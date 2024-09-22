@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   activeChatroomId: null,
+  messages: [],
   chatrooms: {},
   offset: 0,
 };
@@ -9,7 +10,15 @@ const initialState = {
 const chatSlice = createSlice({
   name: "chat",
   initialState,
-  reducers: {},
+  reducers: {
+    setChatrooms(state, {payload}){
+      console.log(payload)
+      return {...state,chatrooms:{...state.chatrooms,...payload}}
+    },
+    setActiveRoomId(state,{payload}){
+      return {...state,activeChatroomId:payload}
+    }
+  },
 });
 
 export const chatActions = chatSlice.actions;

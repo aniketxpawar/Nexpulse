@@ -30,9 +30,48 @@ export const chatService = {
       include: {
         participants: {
           include: {
-            user: true, // Fetch full User details, not just ChatParticipant
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                role:true,
+                profilePic: {
+                  select: {
+                    id: true,
+                    // imageData: true,
+                    imageName: true, 
+                  },
+                },
+                doctor:{
+                  select:{
+                    specialization: true
+                  }
+                }
+              },
+            },
           },
         },
+      },
+    });
+  },
+
+  async getMessagesByChat(chatId: number): Promise<Message[]> {
+    return await prisma.message.findMany({
+      where: {
+        chatId, // Fetch messages for the specified chat
+        isDeleted: false, // Only fetch non-deleted messages
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            fullName: true,
+            role: true
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc", // Order messages by creation time in descending order
       },
     });
   },
