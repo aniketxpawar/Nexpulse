@@ -7,6 +7,7 @@ import ChatList from "@/components/chatroom/ChatList";
 import { chatActions } from "@/redux/chatSlice";
 import axios from "axios";
 import { useChatSocket } from "@/socket/chat";
+import { MdSend } from "react-icons/md";
 
 const ChatroomPage = () => {
   const { id } = useParams(); // Extract chatroomId from the dynamic route
@@ -89,16 +90,16 @@ const ChatroomPage = () => {
   // useEffect(() => console.log(activeChatRoom), [activeChatRoom]);
 
   return (
-    <div className="w-full md:h-[calc(100vh-3rem)] h-[calc(100vh-3.5rem)] flex p-4 gap-2">
+    <div className="w-full md:h-[calc(100vh-3rem)] h-[calc(100vh-3.5rem)] flex p-2">
       {/* Left Sidebar with Chatrooms */}
       <ChatList />
 
       {/* Right Side Content */}
-      <div className="flex flex-col justify-between w-[70%] h-full border border-black rounded-xl">
+      <div className="flex flex-col justify-between w-[70%] h-full rounded-xl">
         {activeChatRoom ? (
           <>
             <div className="">
-              <div className="flex gap-4 border-b border-black p-4">
+              <div className="flex gap-4 border-b p-4">
                 <img
                   src={"/ProfilePhoto.png"}
                   alt={`${otherUser?.user.fullName}'s profile picture`}
@@ -123,7 +124,8 @@ const ChatroomPage = () => {
               </div>
             </div>
 
-            <div className="h-full flex flex-col-reverse gap-4 w-full p-2 overflow-scroll no-scrollbar">
+            <div className="h-full flex flex-col-reverse gap-1 w-full p-2 overflow-scroll no-scrollbar bg-gray-50">
+              {/* @ts-ignore */}
               {messages?.map(({ message, senderId }, index) => {
                 return (
                   <div
@@ -132,7 +134,7 @@ const ChatroomPage = () => {
                       senderId == userId
                         ? "bg-gray-300 text-black"
                         : "bg-blue-600 text-white"
-                    } p-2 px-4 rounded-full w-fit ${
+                    } p-2 px-4 rounded-full w-fit  ${
                       senderId == userId ? "ml-auto" : "mr-auto"
                     }`}
                   >
@@ -145,20 +147,20 @@ const ChatroomPage = () => {
             <div className="h-12 flex m-2">
               <form className="flex w-full gap-2" onSubmit={handleSubmit}>
                 <input
-                  placeholder="Enter the message"
+                  placeholder="Enter message"
                   name="messageInput"
                   value={messageInput}
                   onChange={(e) => {
                     e.preventDefault();
                     setMessageInput(e.target.value);
                   }}
-                  className="border border-black w-full rounded-md px-2"
+                  className="border w-full rounded-full px-4"
                 />
                 <button
                   type="submit"
-                  className="h-12 w-20 bg-blue-600 rounded-md text-white text-lg font-semibold"
+                  className=" bg-blue-600 px-2 rounded-full text-white text-lg font-semibold"
                 >
-                  Send
+                  <MdSend size={24} />
                 </button>
               </form>
             </div>
