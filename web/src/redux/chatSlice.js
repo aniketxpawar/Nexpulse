@@ -12,7 +12,6 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setChatrooms(state, {payload}){
-      console.log(payload)
       return {...state,chatrooms:{...state.chatrooms,...payload}}
     },
     setActiveRoomId(state,{payload}){
@@ -22,7 +21,20 @@ const chatSlice = createSlice({
       return {...state,messages:payload}
     },
     setNewMessage(state, {payload}){
-      return {...state,messages:[payload,...state.messages]}
+      if(state.activeChatroomId && state.activeChatroomId == payload.chatId){
+        state.messages = [payload,...state.messages]
+      }
+      else{
+        if(state.chatrooms[payload.chatId]){
+          console.log(state.chatrooms[payload.chatId])
+          state.chatrooms[payload.chatId].unseenCount =(state.chatrooms[payload.chatId].unseenCount || 0) + 1
+        }
+      }
+      state.chatrooms[payload.chatId].lastMessage = payload
+      return state
+    },
+    setUnseenAsRead(state,{payload}){
+      state.chatrooms[payload].unseenCount = 0
     }
   },
 });

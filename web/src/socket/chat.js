@@ -10,6 +10,7 @@ const ChatContext = createContext(null);
 export default function ChatProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const activeChatroomId = useSelector((state) => state.chat.activeChatroomId);
+  const chatrooms = useSelector((state) => state.chat.chatrooms);
   const dispatch = useDispatch()
 
   const handleInit = (data) => {
@@ -17,9 +18,7 @@ export default function ChatProvider({ children }) {
   };
 
   const handleReceiveMessage = (data) => {
-    if (data.chatId == activeChatroomId){
       dispatch(chatActions.setNewMessage(data))
-    }
   }
 
   useEffect(() => {

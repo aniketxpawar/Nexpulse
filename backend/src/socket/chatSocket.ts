@@ -43,9 +43,14 @@ export default (io: Server) => {
         const result: Record<number, Omit<any, "id">> = {};
 
         // Store the remaining chat properties using id as key
-        chats.forEach((chat) => {
-          result[chat.id] = chat;
-        });
+        for (const chat of chats) {
+          const lastMessage = await chatService.getLastMessage(chat.id);
+          result[chat.id] = {
+            ...chat,
+            lastMessage: lastMessage || null, // Attach lastMessage, or null if no messages exist
+            unseenCount: 0
+          };
+        }
 
         console.log(result);
 

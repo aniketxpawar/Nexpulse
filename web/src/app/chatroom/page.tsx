@@ -1,9 +1,16 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import ChatList from "@/components/chatroom/ChatList";
+import { useDispatch } from "react-redux";
+import { chatActions } from "@/redux/chatSlice";
 
 
 const ChatroomPage = () => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(chatActions.setActiveRoomId(null))
+  },[])
 
   return (
     <div className="w-full md:h-[calc(100vh-3rem)] h-[calc(100vh-3.5rem)] flex p-4 gap-2">

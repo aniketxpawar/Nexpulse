@@ -76,6 +76,13 @@ export const chatService = {
     });
   },
 
+  async getLastMessage(chatId: number) {
+    return await prisma.message.findFirst({
+      where: { chatId },
+      orderBy: { createdAt: 'desc' },
+    });
+  },
+
   // Save a message to a chat room
   async saveMessage(
     chatId: number,
