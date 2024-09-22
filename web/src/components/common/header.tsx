@@ -19,8 +19,8 @@ export function Header({ className }: SidebarProps) {
   const pathname = usePathname()
   const items = [
     {
-      href: '',
-      title: 'Book a demo',
+      href: '/',
+      title: 'Home',
       openInNewTab: true
     },
     {
