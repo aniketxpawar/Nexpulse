@@ -14,11 +14,11 @@ export default function Layout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return (
-        <div className="w-[100svw]">
-            <SidebarDemo>
-                {children}
-            </SidebarDemo>
-        </div>
-    );
+  return (
+      <div className="w-[100svw] overflow-y-scroll">
+        <SidebarDemo>
+        <div className="flex-1">{children}</div>
+        </SidebarDemo>
+      </div>
+  );
 }

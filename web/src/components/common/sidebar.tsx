@@ -8,11 +8,12 @@ import {
   IconMessage
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation"; // import next hooks for routing
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface SidebarDemoProps {
-  children?: React.ReactNode; // This allows you to pass children to SidebarDemo
+  children?: React.ReactNode;
 }
 
 const SidebarDemo: React.FC<SidebarDemoProps> = ({ children }) => {
@@ -33,7 +34,7 @@ const SidebarDemo: React.FC<SidebarDemoProps> = ({ children }) => {
     },
     {
       label: "Chats",
-      href: "/chat",
+      href: "/dashboard/chat",
       icon: (
         <IconMessage className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
@@ -46,11 +47,19 @@ const SidebarDemo: React.FC<SidebarDemoProps> = ({ children }) => {
       ),
     },
   ];
+
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname(); // To detect current path
+
+  const handleNavigation = (href: string) => {
+    router.push(href); // Dynamically change route without reloading
+  };
+
   return (
     <div
       className={cn(
-        "rounded-md flex flex-col md:flex-row bg-gray-100 flex-1 mx-auto overflow-hidden h-[95svh]" // for your use case, use `h-screen` instead of `h-[60vh]`
+        "rounded-md flex flex-col md:flex-row bg-gray-100 flex-1 mx-auto overflow-hidden h-[95svh]" // Ensure this fills most of the screen
       )}
     >
       <Sidebar open={open} setOpen={setOpen}>
@@ -59,33 +68,29 @@ const SidebarDemo: React.FC<SidebarDemoProps> = ({ children }) => {
             {open ? <Logo /> : <LogoIcon />}
             <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => (
-                <SidebarLink key={idx} link={link} />
+                <SidebarLink
+                  key={idx}
+                  link={{
+                    ...link,
+                    // Highlight active link based on current pathname
+                    //@ts-ignore
+                    active: pathname === link.href,
+                    onClick: () => handleNavigation(link.href),
+                  }}
+                />
               ))}
             </div>
           </div>
           <div>
-            {/* <SidebarLink
-              link={{
-                label: "Manu Arora",
-                href: "#",
-                icon: (
-                  <Image
-                    src="https://assets.aceternity.com/manu.png"
-                    className="h-7 w-7 flex-shrink-0 rounded-full"
-                    width={50}
-                    height={50}
-                    alt="Avatar"
-                  />
-                ),
-              }}
-            /> */}
+            {/* Optional: Add more Sidebar items like a user profile */}
           </div>
         </SidebarBody>
       </Sidebar>
       {children}
     </div>
   );
-}
+};
+
 export const Logo = () => {
   return (
     <Link
@@ -103,6 +108,7 @@ export const Logo = () => {
     </Link>
   );
 };
+
 export const LogoIcon = () => {
   return (
     <Link
@@ -113,6 +119,5 @@ export const LogoIcon = () => {
     </Link>
   );
 };
-
 
 export default SidebarDemo;
