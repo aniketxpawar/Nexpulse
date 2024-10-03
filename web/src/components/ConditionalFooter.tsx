@@ -6,7 +6,7 @@ import Footer from "@/components/common/footer";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/chatroom")) {
+  if (pathname.includes("/chatroom")) {
     return null;
   }
 
