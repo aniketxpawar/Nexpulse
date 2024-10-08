@@ -15,11 +15,12 @@ const ChatList = () => {
   // const role = localStorage.getItem("role");
   const router = useRouter();
   const {id} = useParams()
+  const role = localStorage.getItem("role")
   const dispatch = useDispatch()
 
   const handleChatroomClick = (chatroomId: number) => {
     dispatch(chatActions.setActiveRoomId(chatroomId))
-    router.push(`/chatroom/${chatroomId}`);
+    role === 'doctor' ? router.push(`/dashboard/chat/${chatroomId}`) : router.push(`/chatroom/${chatroomId}`)
   };
   return (
     <div className="flex w-[30%] h-full flex-col gap-2 border-r px-2">
@@ -36,7 +37,7 @@ const ChatList = () => {
               <div
                 key={chatroom.id}
                 onClick={() => handleChatroomClick(chatroom.id)}
-                className={`flex items-center gap-2 p-2 w-full h-20 rounded-md cursor-pointer ${chatroom.id == Number(id) ? "bg-gray-100":""}`}
+                className={`flex items-center gap-2 p-2 w-full h-20 rounded-md cursor-pointer ${chatroom.id == Number(id) ? "bg-gray-200":""}`}
               >
                 <img
                   src={'/ProfilePhoto.png'}

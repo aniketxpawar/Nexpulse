@@ -5,7 +5,8 @@ import {
   IconArrowLeft,
   IconCalendarMonth,
   IconHome,
-  IconMessage
+  IconMessage,
+  IconSettings
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation"; // import next hooks for routing
@@ -37,6 +38,13 @@ const SidebarDemo: React.FC<SidebarDemoProps> = ({ children }) => {
       href: "/dashboard/chat",
       icon: (
         <IconMessage className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Profile Settings",
+      href: "/dashboard/profile",
+      icon: (
+        <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
