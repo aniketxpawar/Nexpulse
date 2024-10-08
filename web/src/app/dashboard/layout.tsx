@@ -17,7 +17,7 @@ export default function Layout({
   return (
       <div className="w-[100svw] overflow-y-scroll">
         <SidebarDemo>
-        <div className="flex-1">{children}</div>
+        <div className="flex-1 h-auto overflow-y-scroll scroll-smooth">{children}</div>
         </SidebarDemo>
       </div>
   );
