@@ -1,11 +1,12 @@
 // components/SignupForm.tsx
+"use client"
 import React, { useState, FormEvent } from 'react';
-import { Step1, Step2, Step3} from './Steps';
+import { Step1, Step2, Step3 } from './Steps';
 import { SignupFormData, PersonalInfo, ProfessionalInfo, CredentialsVerification } from '@/types/form';
 import { validateEmail, validatePhone, validatePositiveNumber } from '@/utils/validation';
 import { Button } from '../ui/button';
 
-const SignupForm: React.FC = () => {
+const ProfileForm: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<Partial<SignupFormData>>({});
   const [errors, setErrors] = useState<Partial<Record<keyof SignupFormData, string>>>({});
@@ -66,7 +67,7 @@ const SignupForm: React.FC = () => {
         professionalInfo.experience === ''
       ) {
         currentErrors.experience = 'Years of experience is required';
-      } 
+      }
       // else if (!validatePositiveNumber(professionalInfo.experience)) {
       //   currentErrors.experience = 'Experience must be a positive number';
       // }
@@ -97,14 +98,6 @@ const SignupForm: React.FC = () => {
     setErrors(currentErrors);
 
     return Object.keys(currentErrors).length === 0;
-  };
-
-  // Handle Next button
-  const handleNext = () => {
-    if (validateStep()) {
-      setStep(prev => prev + 1);
-      setErrors({});
-    }
   };
 
   // Handle Back button
@@ -161,53 +154,22 @@ const SignupForm: React.FC = () => {
 
   // Render current step component
   const renderStep = () => {
-    switch (step) {
-      case 1:
-        return <Step1 formData={formData} setFormData={setFormData} errors={errors} />;
-      case 2:
-        return <Step2 formData={formData} setFormData={setFormData} errors={errors} />;
-      case 3:
-        return <Step3 formData={formData} setFormData={setFormData} errors={errors} />;
-      default:
-        return <div>Unknown Step</div>;
-    }
+    return (<>
+      <Step1 formData={formData} setFormData={setFormData} errors={errors} />
+      <Step2 formData={formData} setFormData={setFormData} errors={errors} />
+      <Step3 formData={formData} setFormData={setFormData} errors={errors} />
+    </>)
   };
 
   return (
     <div className={'bg-white p-6 rounded-xl'}>
-      <h1>Doctor Signup</h1>
-
-      <div className={'text-3xl font-bold'}>
-        <div className={`${step==1 ? 'visible': 'hidden'}`}>
-          1. Personal Information
-        </div>
-        <div className={`${step==2 ? 'visible': 'hidden'}`}>
-          2. Professional Information
-        </div>
-        <div className={`${step==3 ? 'visible': 'hidden'}`}>
-          3. Credentials
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit}>
         {renderStep()}
 
         <div className={'flex gap-5'}>
-          {step > 1 && (
-            <Button type="button" onClick={handleBack} className={'w-full'}>
-              Back
-            </Button>
-          )}
-          {step < 3 && (
-            <Button type="button" onClick={handleNext} className={'w-full'}>
-              Next
-            </Button>
-          )}
-          {step === 3 && (
             <Button type="submit" className={'w-full'} disabled={isSubmitting}>
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </Button>
-          )}
           <BottomGradient />
         </div>
       </form>
@@ -217,7 +179,7 @@ const SignupForm: React.FC = () => {
   );
 };
 
-export default SignupForm;
+export default ProfileForm;
 
 
 const BottomGradient = () => {

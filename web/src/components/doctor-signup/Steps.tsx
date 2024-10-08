@@ -30,7 +30,7 @@ const Step1: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
 
   return (
     <div className='py-3'>
-      {/* <h2>Personal Information</h2> */}
+      <h2 className='text-3xl font-bold mb-3'>Personal Information</h2>
 
       <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
         <LabelInputContainer>
@@ -121,8 +121,8 @@ const Step2: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
   };
 
   return (
-    <div className='py-3'>
-      {/* <h2>Professional Information</h2> */}
+    <div className='py-3 flex flex-col gap-3'>
+      <h2 className='text-3xl font-bold mt-5'>Professional Information</h2>
       <LabelInputContainer>
         <Label htmlFor="licenseNumber">Medical License Number</Label>
         <Input
@@ -158,18 +158,20 @@ const Step2: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
         </select>
         {errors.specialization && <p className="error">{errors.specialization}</p>}
       </LabelInputContainer>
-      <label htmlFor="experience">Years of Experience</label>
-      <Input
-        type="number"
-        name="experience"
-        id="experience"
-        value={formData.experience !== undefined ? formData.experience : ''}
-        onChange={handleChange}
-        min={0}
-      />
-      {errors.experience && <p className="error">{errors.experience}</p>}
+      <LabelInputContainer>
+        <Label htmlFor="experience">Years of Experience</Label>
+        <Input
+          type="number"
+          name="experience"
+          id="experience"
+          value={formData.experience !== undefined ? formData.experience : ''}
+          onChange={handleChange}
+          min={0}
+        />
+        {errors.experience && <p className="error">{errors.experience}</p>}
+      </LabelInputContainer>
 
-      <label htmlFor="institution">Affiliated Institution</label>
+      <Label htmlFor="institution">Affiliated Institution</Label>
       <Input
         type="text"
         name="institution"
@@ -193,10 +195,10 @@ const Step3: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
 
   return (
     <div>
-      <h2>Credentials Verification</h2>
+      <h2 className='text-3xl font-bold'>Credentials Verification</h2>
 
-      <label htmlFor="licenseFile">Upload Medical License</label>
-      <input
+      <Label htmlFor="licenseFile">Upload Medical License</Label>
+      <Input
         type="file"
         name="licenseFile"
         id="licenseFile"
@@ -205,8 +207,8 @@ const Step3: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
       />
       {errors.licenseFile && <p className="error">{errors.licenseFile}</p>}
 
-      <label htmlFor="degreeFile">Upload Degree Certificate</label>
-      <input
+      <Label htmlFor="degreeFile">Upload Degree Certificate</Label>
+      <Input
         type="file"
         name="degreeFile"
         id="degreeFile"
@@ -215,8 +217,8 @@ const Step3: React.FC<StepProps> = ({ formData, setFormData, errors }) => {
       />
       {errors.degreeFile && <p className="error">{errors.degreeFile}</p>}
 
-      <label htmlFor="photoID">Upload Photo ID</label>
-      <input
+      <Label htmlFor="photoID">Upload Photo ID</Label>
+      <Input
         type="file"
         name="photoID"
         id="photoID"
