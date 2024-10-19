@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import {sign} from "jsonwebtoken";
 import { userService } from "../services/userService";
-import { getValueByKey, setKeyValueWithExpiry } from "../services/redisServices";
+import { getValueByKey, setKeyValueWithExpiry, smembersWithKey } from "../services/redisServices";
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -163,65 +163,48 @@ const setProfile = async (req: Request, res: Response) => {
 
       // Step 2: Check role and handle accordingly
       if (role === 'doctor') {
-        const availability = [
-          {
-            "day": "Monday",
-            "slots": [
+        const availability = {
+            "Monday": [
               "2024-10-21T18:00:00.000Z",
               "2024-10-21T18:30:00.000Z",
               "2024-10-21T19:00:00.000Z",
               "2024-10-21T19:30:00.000Z",
               "2024-10-21T20:00:00.000Z",
               "2024-10-21T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Tuesday",
-            "slots": [
+            ],
+            "Tuesday": [
               "2024-10-22T18:00:00.000Z",
               "2024-10-22T18:30:00.000Z",
               "2024-10-22T19:00:00.000Z",
               "2024-10-22T19:30:00.000Z",
               "2024-10-22T20:00:00.000Z",
               "2024-10-22T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Wednesday",
-            "slots": [
+            ],
+          "Wednesday": [
               "2024-10-23T18:00:00.000Z",
               "2024-10-23T18:30:00.000Z",
               "2024-10-23T19:00:00.000Z",
               "2024-10-23T19:30:00.000Z",
               "2024-10-23T20:00:00.000Z",
               "2024-10-23T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Thursday",
-            "slots": [
+            ],
+          "Thursday": [
               "2024-10-24T18:00:00.000Z",
               "2024-10-24T18:30:00.000Z",
               "2024-10-24T19:00:00.000Z",
               "2024-10-24T19:30:00.000Z",
               "2024-10-24T20:00:00.000Z",
               "2024-10-24T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Friday",
-            "slots": [
+            ],
+            "Friday": [
               "2024-10-25T18:00:00.000Z",
               "2024-10-25T18:30:00.000Z",
               "2024-10-25T19:00:00.000Z",
               "2024-10-25T19:30:00.000Z",
               "2024-10-25T20:00:00.000Z",
               "2024-10-25T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Saturday",
-            "slots": [
+            ],
+          "Saturday": [
               "2024-10-26T10:00:00.000Z",
               "2024-10-26T10:30:00.000Z",
               "2024-10-26T11:00:00.000Z",
@@ -231,11 +214,8 @@ const setProfile = async (req: Request, res: Response) => {
               "2024-10-26T19:30:00.000Z",
               "2024-10-26T20:00:00.000Z",
               "2024-10-26T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Sunday",
-            "slots": [
+            ],
+          "Sunday": [
               "2024-10-26T10:00:00.000Z",
               "2024-10-26T10:30:00.000Z",
               "2024-10-26T11:00:00.000Z",
@@ -248,7 +228,6 @@ const setProfile = async (req: Request, res: Response) => {
               "2024-10-27T20:30:00.000Z"
             ]
           }
-        ]
         
 
         await userService.createDoctorProfile(Number(userId), { specialization, experience, licenseNumber, licenseAuthority, licenseExpiry, consultationCharge, clinicAddress, profile, availability });
@@ -302,11 +281,22 @@ const getDoctorById = async (req: Request, res: Response) => {
   }
 };
 
+const getSpecialist = async (req: Request, res: Response) => {
+  try{
+    const specialists = await smembersWithKey('specialist') || []
+    res.json(specialists)
+  } catch (error) {
+    console.error('Error fetching specialists:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 
 export const userController = {
     signup,
     validateOTP,
     login,
     setProfile,
-    getDoctorById
+    getDoctorById,
+    getSpecialist
   };
