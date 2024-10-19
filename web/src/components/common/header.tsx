@@ -21,7 +21,12 @@ export function Header({ className }: SidebarProps) {
     {
       href: '/',
       title: 'Home',
-      openInNewTab: true
+      openInNewTab: false
+    },
+    {
+      href: '/doctors',
+      title: 'Doctors',
+      openInNewTab: false
     },
     {
       href: 'mailto:myemail@.com',
@@ -93,7 +98,7 @@ export function Header({ className }: SidebarProps) {
         className
       )}
     >
-      <div className="w-full max-w-[1280px] md:px-8 px-4">
+      <div className="w-full max-w-7xl">
         {/* Desktop */}
         <div className="flex items-center gap-x-8 w-full">
           <div className="md:flex-0 min-w-fit flex-1">
