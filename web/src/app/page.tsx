@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
 import Feature from "@/components/ui/feature";
-import { ArrowUpDown, Timer, Workflow } from "lucide-react";
+import { Activity, ArrowUpDown, ShieldCheck, Timer, Workflow } from "lucide-react";
 import LandingImage from "@/assets/images/landing page.png";
 import Image from 'next/image'
 import Link from "next/link";
@@ -14,17 +14,17 @@ export default function Home() {
     >
       <div className="flex flex-col gap-6 items-center h-[100svh]">
         <Typography className="max-w-2xl" variant="h1">
-          Information you need during on-call emergencies
+        Instant Access to Doctors for You and Your Loved Ones
         </Typography>
         <Typography className="max-w-2xl" variant="h5">
-          Quickly link new on-call tickets to similar past
-          incidents and their solutions. All directly in
-          Slack the moment an incident happens.
+        Connect with doctors instantly. Manage appointments, prescriptions, and your relatives' health.
+        <span> All in one place.</span>
         </Typography>
+        
 
         <div className="relative">
           <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
-            <Link href="/auth/doctor-signup">
+            <Link href="/dashboard/home">
             <Button className="bg-blue-700">
               {`Get Started`}
             </Button>
@@ -43,27 +43,32 @@ export default function Home() {
       <div className="flex flex-col md:gap-36 gap-24 items-center">
         <div className="flex flex-col gap-12 items-center">
           <Typography className="max-w-2xl" variant="h1">
-            Quick solutions, less stress
+          Quick care, less hassle
           </Typography>
           <div className="flex md:flex-row flex-col gap-12">
             <Feature
               icon={<Timer size={24} />}
-              headline="Fix emergencies fast"
-              description="Save 20-30 minutes per on-call ticket - no more searching for relevant issues and runbooks"
+              headline="Get care quickly"
+              description="Schedule doctor consultations and manage healthcare needs efficiently — everything you need is organized and accessible."
             />
             <Feature
               icon={<ArrowUpDown size={24} />}
-              headline="Universally compatible"
-              description="Works with PagerDuty, Jira, or custom Slack alerts—Pandem integrates with any system"
+              headline="Centralized medical records"
+              description="Store and manage all medical records conveniently, ensuring quick access when you need it."
             />
             <Feature
-              icon={<Workflow size={24} />}
-              headline="Secure for your org"
-              description="We keep your data safe by taking top security measures."
+              icon={<Activity size={24} />}
+              headline="Flexible for your needs"
+              description="Easily set up consultations and manage appointments and medications, all in one platform."
+            />
+            <Feature
+              icon={<ShieldCheck size={24} />}
+              headline="Secure and reliable"
+              description="Your data is safe with us. We prioritize security to protect your personal and health information."
             />
           </div>
         </div>
-        <div className="flex flex-col gap-6 max-w-2xl items-center">
+        {/* <div className="flex flex-col gap-6 max-w-2xl items-center">
           <Typography className="max-w-2xl" variant="h1">
             Instant setup, no custom code
           </Typography>
@@ -72,7 +77,7 @@ export default function Home() {
             incidents and their solutions. All directly in
             Slack the moment an incident happens.
           </Typography>
-        </div>
+        </div> */}
         <div className="flex flex-col gap-6 items-center">
           <Typography className="max-w-2xl" variant="h1">
             Get in touch

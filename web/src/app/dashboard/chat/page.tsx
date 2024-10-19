@@ -1,75 +1,30 @@
-"use client"
-import Calendar from "@/components/common/calendar"
-import { useState } from "react"
+"use client";
+import React, { useEffect } from "react";
+import ChatList from "@/components/chatroom/ChatList";
+import { useDispatch } from "react-redux";
+import { chatActions } from "@/redux/chatSlice";
 
 
-  export default function DashboardPage() {
-    return <div className="flex flex-1">
-      <div className="p-2 md:p-10 rounded-2xl border border-neutral-200 bg-white grid grid-cols-3 w-full h-full">
-        <div className="col-span-2">
-        <h1 className="font-bold mb-2 text-3xl">This is the chat page</h1>
-          <GreetCard />
-          <PatientList/>
-        </div>
-        <div className="h-[40vh] px-5"> {/* Adjusted height here */}
-          <h1 className="text-2xl font-bold mb-">Your today's schedule</h1>
-          <Calendar prop="day"/>
-        </div>
+const ChatroomPage = () => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(chatActions.setActiveRoomId(null))
+  },[])
+
+  return (
+    <div className="w-full md:h-[calc(100vh-3rem)] h-[calc(100vh-3.5rem)] flex">
+      {/* Left Sidebar with Chatrooms */}
+      <ChatList/>
+
+      {/* Right Side Content */}
+      <div className="flex flex-col w-[70%] h-full bg-gray-50 rounded-xl">
+          <div className="flex items-center justify-center h-full text-2xl font-semibold">
+            <p>{`Select a chatroom to start chatting`}</p>
+          </div>
       </div>
     </div>
-  }
-  
-  function GreetCard() {
-    return <div className="bg-blue-500 mb-5 relative rounded-xl h-[30vh] px-7 p-4 text-white shadow-lg flex items-center justify-between"> {/* Corrected to vh */}
-      <div className="flex flex-col justify-between gap-7">
+  );
+};
 
-      <div>
-       <h1 className="text-4xl font-extrabold mb-5">Visits For Today</h1>
-       <h1 className="text-6xl font-extrabold">34</h1>
-       </div>
-
-       <div className="flex gap-7">
-        <div className="px-4 py-3 rounded-xl bg-blue-400">
-        <h1 className="text-xl font-extrabold mb-2">Visits This Week</h1>
-        <h1 className="text-2xl font-extrabold">120</h1>
-        </div>
-
-
-        <div className="px-4 py-3 rounded-xl bg-blue-400">
-        <h1 className="text-xl font-extrabold mb-2">Visits This Month</h1>
-        <h1 className="text-2xl font-extrabold">120</h1>
-        </div>
-
-        <div className="px-4 py-3 rounded-xl bg-blue-400">
-        <h1 className="text-xl font-extrabold mb-2">New Patients</h1>
-        <h1 className="text-2xl font-extrabold">7</h1>
-        </div>
-       </div>
-
-      </div>
-      <img className="h-[28svh] absolute right-8 bottom-0" src="https://hinduja-prod-assets.s3.ap-south-1.amazonaws.com/s3fs-public/2022-03/Ashit%20Hegde.png?VersionId=sMzNgniTwhILR5tHFw4YmC7peaecIHJZ" alt="" /> {/* Corrected to vh */}
-    </div>
-  }
-
-  function PatientList() {
-    return <div className="bg-white rounded-xl p-4 shadow-lg border">
-      <h1 className="font-bold text-2xl">Patient List</h1>
-      <div className="grid grid-cols-3 gap-4 mt-5">
-        <PatientCard />
-        <PatientCard />
-        <PatientCard />
-        <PatientCard />
-        <PatientCard />
-      </div>
-    </div>
-  }
-
-  function PatientCard() {
-    return <div className="bg-white rounded-xl p-4 shadow-md">
-      <h1 className="font-bold text-xl">Patient Name</h1>
-      <p className="text-sm">Age: 25</p>
-      <p className = "text-sm"> 
-        <span className="font-bold">Last Visit:</span> 12th March 2022
-      </p>
-    </div>
-  }
+export default ChatroomPage;

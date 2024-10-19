@@ -14,9 +14,6 @@ const Footer = () => {
                       <li className="mb-4">
                           <a href="/" className="hover:underline">NexPulse</a>
                       </li>
-                      <li>
-                          <a href="https://tailwindcss.com/" className="hover:underline">Tailwind CSS</a>
-                      </li>
                   </ul>
               </div>
               <div>
@@ -26,7 +23,7 @@ const Footer = () => {
                           <a href="" className="hover:underline ">Github</a>
                       </li>
                       <li>
-                          <a href="" className="hover:underline">Discord</a>
+                          <a href="" className="hover:underline">Facebook</a>
                       </li>
                   </ul>
               </div>

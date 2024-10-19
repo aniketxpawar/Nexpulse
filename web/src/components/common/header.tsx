@@ -19,8 +19,8 @@ export function Header({ className }: SidebarProps) {
   const pathname = usePathname()
   const items = [
     {
-      href: '',
-      title: 'Book a demo',
+      href: '/',
+      title: 'Home',
       openInNewTab: true
     },
     {
@@ -39,7 +39,7 @@ export function Header({ className }: SidebarProps) {
 
   const getAuthButtons = () => (
     <div className="flex gap-3 items-center">
-      <Link
+      {/* <Link
         href="/"
         target="_blank"
       >
@@ -54,7 +54,7 @@ export function Header({ className }: SidebarProps) {
             Sign Up
           </Typography>
         </Button>
-      </Link>
+      </Link> */}
     </div>
   )
 
