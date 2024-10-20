@@ -1,4 +1,3 @@
-"use client"
 import { useEffect } from "react";
 import Calendar from "tui-calendar"; // ES6
 import "tui-calendar/dist/tui-calendar.css"; // Import default styles
@@ -19,16 +18,16 @@ interface MyTUICalendarProps {
   schedules: Schedule[];
 }
 
-const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ prop, schedules }) => {
+const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ schedules }) => {
   useEffect(() => {
     const calendar = new Calendar("#calendar", {
-      defaultView: prop ? prop : "week", // or 'month', 'day'
+      defaultView: "week", // or 'month', 'day'
       taskView: false, // Hide the task view
       scheduleView: true, // Show the schedule view
       useDetailPopup: true, // Popup for details
       template: {
         time: function (schedule) {
-          return `<span>${schedule.title}</span>`;
+          return `<span style="color:#fff;background-color:${schedule.bgColor};padding:4px;border-radius:4px;">${schedule.title}</span>`;
         },
       },
       theme: {
@@ -44,7 +43,7 @@ const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ prop, schedules }) => {
     calendar.createSchedules(schedules);
 
     return () => calendar.destroy();
-  }, [prop, schedules]);
+  }, [schedules]);
 
   return <div id="calendar" className="" />;
 };

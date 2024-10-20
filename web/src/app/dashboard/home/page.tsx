@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import axios from "axios"
 import { cardio } from 'ldrs'
 import { doctorPic } from "@/assets/defaultProfiles"
+import MyTUICalendar from "@/components/common/calendar"
 cardio.register()
 
 
@@ -41,16 +42,50 @@ export default function DashboardPage() {
 
   const [upcomingAppointments, setUpcomingAppointments] = useState([])
   const [loading, setLoading] = useState(true)
-  const schedule = [
-    {
-      id: 1,
-      title: "Appointment with John Doe",
-      body: "link: https://meet.google.com/xyz",
-      category: "time",
-      start: new Date().toISOString(),
-      end: currentDate.toISOString(),
-    }
-  ]
+  // const schedule = [
+  //   {
+  //     id: 1,
+  //     title: "Appointment with John Doe",
+  //     body: "link: https://meet.google.com/xyz",
+  //     category: "time",
+  //     start: new Date().toISOString(),
+  //     end: currentDate.toISOString(),
+  //   }
+  // ]
+  const [schedules, setSchedules] = useState([])
+  function addMinutesAndFormatUTC(utcDateString: string, minutes: number): string {
+    const date = new Date(utcDateString); // Convert UTC string to Date object
+    
+    // Add the specified minutes
+    date.setUTCMinutes(date.getUTCMinutes() + minutes);
+  
+    // Format the date components to ensure they are two digits
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutesFormatted = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutesFormatted}:${seconds}`;
+  }
+  
+  
+  useEffect(() => {
+    const newSchedule = upcomingAppointments.map((appointment, index) => {
+      return {
+        id: appointment.id,
+        calendarId: index+1, 
+        title: `Appointment with ${appointment.patient.user.fullName}`,
+        body: `<a class='bg-blue-700 p-2 rounded-md text-white' href='${appointment.link}' target='_blank'>Join now</a>`,
+        category: "time",
+        start: addMinutesAndFormatUTC(appointment.appointmentDate, 0),
+        end: addMinutesAndFormatUTC(appointment.appointmentDate, 30),
+      };
+    });
+  console.log("new" ,newSchedule);
+  setSchedules(newSchedule)
+}, [upcomingAppointments])
+
   return (
     <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto"> {/* Adjusted for dynamic height */}
       {
@@ -71,7 +106,7 @@ export default function DashboardPage() {
             <div className="w-1/3 invisible lg:visible"> {/* Removed fixed height */}
               <h1 className="text-2xl font-bold mb-3">Your today's schedule</h1>
               <div className="p-5 border rounded-xl">
-                <Calendar prop="day" schedule={schedule} />
+                <MyTUICalendar prop="day" schedule={schedules} />
               </div>
             </div>
           </div>}
@@ -146,15 +181,5 @@ function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
         ))
       }
     </div>
-  </div>
-}
-
-function PatientCard() {
-  return <div className="bg-white rounded-xl p-4 border shadow-sm">
-    <h1 className="font-bold text-xl">Patient Name</h1>
-    <p className="text-sm">Age: 25</p>
-    <p className="text-sm">
-      <span className="font-bold">Last Visit:</span> 12th March 2022
-    </p>
   </div>
 }

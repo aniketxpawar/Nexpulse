@@ -15,7 +15,7 @@ const ChatList = () => {
   // const role = localStorage.getItem("role");
   const router = useRouter();
   const {id} = useParams()
-  const role = localStorage.getItem("role")
+  const role = (() => localStorage.getItem("role"))();
   const dispatch = useDispatch()
 
   const handleChatroomClick = (chatroomId: number) => {

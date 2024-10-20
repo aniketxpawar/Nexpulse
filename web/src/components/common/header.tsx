@@ -24,7 +24,7 @@ export function Header({ className }: SidebarProps) {
       openInNewTab: false
     }
   ]
-  const role = localStorage.getItem('role')
+  const role = (() => localStorage.getItem("role"))();
   // Conditionally add 'My Appointments' if the role is 'patient'
   if (role === 'patient') {
     items.push({
@@ -35,6 +35,11 @@ export function Header({ className }: SidebarProps) {
     items.push({
       href: '/my-appointments',
       title: 'My Appointments',
+      openInNewTab: false,
+    })
+    items.push({
+      href: '/chatroom',
+      title: 'My Chats',
       openInNewTab: false,
     })
   }
