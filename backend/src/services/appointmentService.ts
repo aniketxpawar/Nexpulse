@@ -2,10 +2,31 @@ import { AppointmentStatus, AppointmentType, Doctor, PrismaClient } from "@prism
 
 const prisma = new PrismaClient();
 
-const findDoctor = async (userId: number) => {
+const findDoctor = async (userId: number): Promise<Doctor | null> => {
     return await prisma.doctor.findUnique({
         where: { userId },
     });
+}
+
+const getDoctorWithDateAppointments = async (doctorId: number, appointmentDate: Date): Promise<any> => {
+    return await prisma.doctor.findUnique({
+        where: { userId: doctorId },
+        select: {
+          availability: true,
+          appointments: {
+            where: {
+              appointmentDate: {
+                gte: appointmentDate,
+                lt: new Date(appointmentDate.getTime() + 24 * 60 * 60 * 1000)  // Filter appointments on the same day
+              },
+              status: 'scheduled'  // Consider only scheduled appointments
+            },
+            select: {
+              appointmentDate: true
+            }
+          }
+        }
+      });
 }
 
 const createAppointment = async (doctorId: number, patientId: number, appointmentDate: Date, type: AppointmentType) => {
@@ -50,6 +71,7 @@ const updateAppointmentStatus = async (id: number, status: AppointmentStatus) =>
 
 export const appointmentService = {
     findDoctor,
+    getDoctorWithDateAppointments,
     createAppointment,
     getAppointments,
     findAppointment,

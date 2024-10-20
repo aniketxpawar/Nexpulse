@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import {sign} from "jsonwebtoken";
 import { userService } from "../services/userService";
-import { getValueByKey, setKeyValueWithExpiry } from "../services/redisServices";
+import { getValueByKey, setKeyValueWithExpiry, smembersWithKey } from "../services/redisServices";
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -284,11 +284,22 @@ const getDoctorById = async (req: Request, res: Response) => {
   }
 };
 
+const getSpecialist = async (req: Request, res: Response) => {
+  try{
+    const specialists = await smembersWithKey('specialist') || []
+    res.json(specialists)
+  } catch (error) {
+    console.error('Error fetching specialists:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 
 export const userController = {
     signup,
     validateOTP,
     login,
     setProfile,
-    getDoctorById
+    getDoctorById,
+    getSpecialist
   };
