@@ -5,35 +5,40 @@ import { RiRadioButtonLine } from "react-icons/ri"
 import { MdPeople } from "react-icons/md";
 import { IoCalendar } from "react-icons/io5";
 import { FaExternalLinkAlt } from "react-icons/fa";
-
-
+import MyTUICalendar from "@/components/common/calendar";
 
 export default function DashboardPage() {
   const currentDate = new Date();
-currentDate.setMinutes(currentDate.getMinutes() + 30);
+  currentDate.setMinutes(currentDate.getMinutes() + 30);
 
-const schedule = [
-  {
-    id: 1,
-    title: "Appointment with John Doe",
-    body: "link: https://meet.google.com/xyz",
-    category: "time",
-    start: new Date().toISOString(),
-    end: currentDate.toISOString(),
-  }
-]
+  const schedule = [
+    {
+      id: 1,
+      title: "Appointment with John Doe",
+      body: "link: https://meet.google.com/xyz",
+      category: "time",
+      start: new Date().toISOString(),
+      end: currentDate.toISOString(),
+    },
+  ];
   return (
-    <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto"> {/* Adjusted for dynamic height */}
+    <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto">
+      {" "}
+      {/* Adjusted for dynamic height */}
       <div className="p-2 md:p-10 rounded-2xl border border-neutral-200 bg-white flex flex-col lg:flex-row w-full gap-4">
         <div className="w-full lg:w-3/4">
-          <h1 className="font-bold mb-2 text-3xl">Welcome Back Dr. Manish Gupta!</h1>
+          <h1 className="font-bold mb-2 text-3xl">
+            Welcome Back Dr. Manish Gupta!
+          </h1>
           <GreetCard />
           <PatientList />
         </div>
-        <div className="w-1/3 invisible lg:visible"> {/* Removed fixed height */}
+        <div className="w-1/3 invisible lg:visible">
+          {" "}
+          {/* Removed fixed height */}
           <h1 className="text-2xl font-bold mb-3">Your today's schedule</h1>
           <div className="p-5 border rounded-xl">
-            <Calendar prop="day" schedule={schedule}/>
+            <MyTUICalendar prop="day" schedule={schedule} />
           </div>
         </div>
       </div>

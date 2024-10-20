@@ -19,18 +19,16 @@ interface MyTUICalendarProps {
   schedules: Schedule[];
 }
 
-const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ schedules }) => {
+const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ prop, schedules }) => {
   useEffect(() => {
     const calendar = new Calendar("#calendar", {
-      defaultView: "week", // or 'month', 'day'
+      defaultView: prop ? prop : "week", // or 'month', 'day'
       taskView: false, // Hide the task view
       scheduleView: true, // Show the schedule view
       useDetailPopup: true, // Popup for details
       template: {
         time: function (schedule) {
-          console.log(schedule);
-          
-          return <span>{schedule.title}</span>;
+          return `<span>${schedule.title}</span>`;
         },
       },
       theme: {
