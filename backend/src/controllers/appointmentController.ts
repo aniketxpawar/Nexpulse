@@ -103,9 +103,9 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
       }
   
       // Step 2: Generate a unique meeting code
-      const meetingCode = crypto.randomUUID()
+      const meetingCode = crypto.randomUUID();
       // TO DO: CHECK IF A CODE IS ALREADY USED OR NOT
-      const link = type == "online" ? "http://localhost:5173/meeting/"+meetingCode : null
+      const link = type == "online" ? "http://localhost:5173/meeting/" + meetingCode : null
   
       // Step 3: Create appointment with meeting code
       const appointment = await appointmentService.createAppointmentRecord(doctor.id, patient.id, appointmentDate,healthConcern, type, link);
