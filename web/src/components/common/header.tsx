@@ -22,17 +22,30 @@ export function Header({ className }: SidebarProps) {
       href: '/',
       title: 'Home',
       openInNewTab: false
-    },
-    {
+    }
+  ]
+  const role = localStorage.getItem('role')
+  // Conditionally add 'My Appointments' if the role is 'patient'
+  if (role === 'patient') {
+    items.push({
       href: '/doctors',
       title: 'Doctors',
       openInNewTab: false
-    },
-    {
-      href: 'mailto:myemail@.com',
-      title: 'Contact Us'
-    }
-  ]
+    })
+    items.push({
+      href: '/my-appointments',
+      title: 'My Appointments',
+      openInNewTab: false,
+    })
+  }
+
+  if (role === 'doctor') {
+    items.push({
+      href: '/dashboard/home',
+      title: 'My Dashboard',
+      openInNewTab: false
+    })
+  }
 
   const getLogo = () => (
     <Link href="/" className="pointer flex items-center">

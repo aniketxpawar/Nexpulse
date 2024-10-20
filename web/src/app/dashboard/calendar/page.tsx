@@ -13,24 +13,40 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
+
+
 export default function CalendarPage() {
+
+  const currentDate = new Date();
+  currentDate.setMinutes(currentDate.getMinutes() + 30);
+
+
+  const schedule = [
+    {
+      id: 1,
+      title: "Appointment with John Doe",
+      body: "link: https://meet.google.com/xyz",
+      start: new Date().toISOString(),
+      end: currentDate.toISOString(),
+    }
+  ]
   const [selectedView, setSelectedView] = useState("month");
   // Update setSelectedViewType to use the correct function that updates the state
   const setSelectedViewType = (view: string) => setSelectedView(view);
   return <div className="flex flex-1 h-[200svh] pb-28">
     <div className="p-2 md:p-10 rounded-2xl border border-neutral-200 bg-white w-full h-full">
       <div className="flex justify-between">
-      <h1 className="text-3xl font-bold mb-5">Your Schedule</h1>
-      <DropdownMenuCheckboxes ViewType={selectedView} setSelectedViewType={setSelectedViewType}/>
+        <h1 className="text-3xl font-bold mb-5">Your Schedule</h1>
+        <DropdownMenuCheckboxes ViewType={selectedView} setSelectedViewType={setSelectedViewType} />
       </div>
       <div className="border p-5 rounded-xl">
-      <Calendar prop={selectedView}/>
+        <Calendar prop={selectedView} schedule={schedule} />
       </div>
     </div>
   </div>
 }
 
-export function DropdownMenuCheckboxes({ViewType, setSelectedViewType}: {ViewType: string, setSelectedViewType: (view: string) => void}) {
+export function DropdownMenuCheckboxes({ ViewType, setSelectedViewType }: { ViewType: string, setSelectedViewType: (view: string) => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
