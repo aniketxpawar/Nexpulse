@@ -8,5 +8,7 @@ router.post('/validate-otp', userController.validateOTP)
 router.post('/login', userController.login)
 router.post('/set-profile', userController.setProfile)
 router.post('/get-doctor', userController.getDoctorById)
+router.post('/get-patient', userController.getPatientById)
+router.get('/get-specialist', userController.getSpecialist)
 
 export default router;

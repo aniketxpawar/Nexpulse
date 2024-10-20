@@ -36,8 +36,9 @@ export const getValueByKey = async (
     }
   };
 
-// Example usage
-// setKeyValueWithExpiry('exampleKey', 'exampleValue', 60); // Adds key with 60-second expiry
+export const smembersWithKey = async (key: string) => {
+    return await redis.smembers(key)
+}
 
 // Function to close the Redis connection (optional)
 export const closeRedisConnection = (): void => {

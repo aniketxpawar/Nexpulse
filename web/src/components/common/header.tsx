@@ -22,17 +22,30 @@ export function Header({ className }: SidebarProps) {
       href: '/',
       title: 'Home',
       openInNewTab: false
-    },
-    {
+    }
+  ]
+  const role = localStorage.getItem('role')
+  // Conditionally add 'My Appointments' if the role is 'patient'
+  if (role === 'patient') {
+    items.push({
       href: '/doctors',
       title: 'Doctors',
       openInNewTab: false
-    },
-    {
-      href: 'mailto:myemail@.com',
-      title: 'Contact Us'
-    }
-  ]
+    })
+    items.push({
+      href: '/my-appointments',
+      title: 'My Appointments',
+      openInNewTab: false,
+    })
+  }
+
+  if (role === 'doctor') {
+    items.push({
+      href: '/dashboard/home',
+      title: 'My Dashboard',
+      openInNewTab: false
+    })
+  }
 
   const getLogo = () => (
     <Link href="/" className="pointer flex items-center">
@@ -42,26 +55,43 @@ export function Header({ className }: SidebarProps) {
     </Link>
   )
 
-  const getAuthButtons = () => (
+  const getAuthButtons = () => {
+    const role = localStorage.getItem('role')
+    const userId = localStorage.getItem('userId')
+    if(!userId){
+      return(
+        <div className="flex gap-3 items-center">
+          <Link
+            href="/signin"
+          >
+            <Typography variant="p">Login</Typography>
+          </Link>
+          <Link
+            href="/signup"
+          >
+            <Button color="ghost">
+              <Typography variant="p" className="text-white">
+                Sign Up
+              </Typography>
+            </Button>
+          </Link>
+        </div>
+      )
+    }
+
+    return(
     <div className="flex gap-3 items-center">
-      {/* <Link
-        href="/"
-        target="_blank"
-      >
-        <Typography variant="p">Login</Typography>
-      </Link>
       <Link
-        href="/"
-        target="_blank"
+        href="/logout"
       >
         <Button color="ghost">
-          <Typography variant="p" className="text-white">
-            Sign Up
-          </Typography>
-        </Button>
-      </Link> */}
+              <Typography variant="p" className="text-white">
+                Logout
+              </Typography>
+            </Button>
+      </Link>
     </div>
-  )
+  )}
 
   const getHeaderItems = () => {
     return (
