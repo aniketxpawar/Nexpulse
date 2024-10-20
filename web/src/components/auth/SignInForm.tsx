@@ -32,7 +32,6 @@ const SignInForm = ({type} : {type: string}) => {
         password: '',
     })
 
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const response = await axios.post('http://localhost:4000/user/login', data)
