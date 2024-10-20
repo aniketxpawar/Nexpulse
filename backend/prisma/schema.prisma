@@ -13,24 +13,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Image {
-  id          Int     @id @default(autoincrement())
-  imageData   Bytes   // This is for storing the binary data
-  imageName   String
-  user        User    @relation(fields: [userId], references: [id]) // Relation to User model
-  userId      Int     @unique // Foreign key, must be unique for one-to-one relation
-}
-
 model User {
   id          Int      @id @default(autoincrement())
   fullName    String
   role        Role
   email       String   @unique
   password    String
-  phone       String   @db.VarChar(10)
+  phone       String?   @db.VarChar(10)
   city        String?
   createdAt   DateTime @default(now())
-  profilePic  Image?   // One-to-one relation with Image (optional)
+  profilePic  String?  // profilePic  Image?   // One-to-one relation with Image (optional)
   
   doctor      Doctor?
   patient     Patient?

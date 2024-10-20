@@ -35,13 +35,7 @@ export const chatService = {
                 id: true,
                 fullName: true,
                 role:true,
-                profilePic: {
-                  select: {
-                    id: true,
-                    // imageData: true,
-                    imageName: true, 
-                  },
-                },
+                profilePic: true,
                 doctor:{
                   select:{
                     specialization: true

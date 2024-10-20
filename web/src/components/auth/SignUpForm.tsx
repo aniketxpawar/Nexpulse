@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
 import { useRouter } from 'next/navigation';
+import axios from "axios";
+import toast from "react-hot-toast";
 
 
 const LabelInputContainer = ({
@@ -27,24 +29,47 @@ const LabelInputContainer = ({
 const SignupForm = ({type} : {type: string}) => {
     const router = useRouter()
     const [data, setData] = useState({
+        fullName: '',
         email: '',
         password: '',
+        role: type
     })
     const [confirmPassword, setConfirmPassword] = useState('')
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if(data.password !== confirmPassword) {
-            alert('Passwords do not match')
+            toast.error('Passwords do not match')
             return
         }
-        if(type === 'Patient') router.push('/doctors');
-        else router.push('/dashboard/profile');
+        try{
+            const response = await axios.post('http://localhost:4000/user/signup', data)
+            console.log(response.data)
+            toast.success(response.data.message)
+            localStorage.setItem('email', data.email)
+            localStorage.setItem('role', type)
+            router.push('/verification');
+        }catch(err){
+            console.log(err)
+            // @ts-ignore
+            if(err?.response?.data?.error) toast.error(err?.response?.data?.error)
+            else toast.error('An error occured')
+        }
     }
     return (
         <div className='bg-white p-6 rounded-xl flex flex-col gap-5 lg:w-[30svw] w-[90svw] border'>
             <h2 className="text-3xl font-bold">Register as a {type}</h2>
             <form className="flex flex-col gap-5" onSubmit={(e) => handleSubmit(e)}>
+            <LabelInputContainer>
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                    type="text"
+                    name="fullName"
+                    id="fullName"
+                    placeholder="Full Name"
+                    onChange={(e) => setData({...data, [e.target.name]: e.target.value})}
+                />
+            </LabelInputContainer>
             <LabelInputContainer>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -84,9 +109,9 @@ const SignupForm = ({type} : {type: string}) => {
             </form>
 
             <div className="flex justify-between">
-                <p>Already have an account? <a href={type=='Patient' ? "/signin": "/doctor-signin"} className="text-blue-500 hover:underline">Sign in</a></p>
+                <p>Already have an account? <a href={type=='patient' ? "/signin": "/doctor-signin"} className="text-blue-500 hover:underline">Sign in</a></p>
                 {
-                    type === 'Patient' ? <p>Are you a doctor? <a href="/doctor-signin" className="text-blue-500 hover:underline">Sign up</a></p> : <p>Are you a patient? <a href="/signin" className="text-blue-500 hover:underline">Sign up</a></p>
+                    type === 'patient' ? <p>Are you a doctor? <a href="/doctor-signin" className="text-blue-500 hover:underline">Sign up</a></p> : <p>Are you a patient? <a href="/signin" className="text-blue-500 hover:underline">Sign up</a></p>
                 }
             </div>
         </div>
