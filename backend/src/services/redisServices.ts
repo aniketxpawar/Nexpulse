@@ -40,6 +40,26 @@ export const smembersWithKey = async (key: string) => {
     return await redis.smembers(key)
 }
 
+export const findSpecialistsByTags = async (tags: string[]): Promise<string[]> => {
+  const matchingSpecialists = new Set<string>();
+
+  // Iterate through each tag and find matching specialists
+  for (const tag of tags) {
+    
+    // Find all specialists that have this tag
+    const specialistsForTag = await redis.keys(`specialist:*`);
+    
+    for (const specialistKey of specialistsForTag) {
+      const hasTag = await redis.sismember(specialistKey, tag.toLowerCase());
+      if (hasTag) {
+        matchingSpecialists.add(specialistKey.split(':')[1]); // Extract specialist name
+      }
+    }
+  }
+
+  return Array.from(matchingSpecialists);
+}
+
 // Function to close the Redis connection (optional)
 export const closeRedisConnection = (): void => {
   redis.quit();
