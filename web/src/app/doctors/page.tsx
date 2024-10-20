@@ -1,6 +1,19 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import { FaStar } from "react-icons/fa";
 import { IoLocationOutline } from "react-icons/io5";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from '@/components/ui/button';
+import axios from 'axios';
+import Select from 'react-select';
+
 
 interface Doctor {
   id: number,
@@ -78,6 +91,48 @@ const Home = () => {
       experience: 20
     }
   ]
+  const getElements = async () => {
+    if (!searchBy) {
+      return
+    }
+    if (searchBy === 'specialization') {
+      if (specialist.length) {
+        return
+      }
+      const res = await axios.get('http://localhost:4000/user/get-specialist')
+      console.log(res);
+      const customSpecialist = res.data.map((specialist: string) => {
+        return {
+          value: specialist,
+          label: specialist
+        }
+      })
+      setSpecialist(customSpecialist)
+    } else {
+      if (tags.length) {
+        return
+      }
+      const res = await axios.get('http://localhost:4000/user/get-tags')
+      console.log(res);
+      const customTags = res.data.map((tag: string) => {
+        return {
+          value: tag,
+          label: tag
+        }
+      })
+      setTags(customTags)
+    }
+  }
+  const [searchBy, setSearchBy] = useState('')
+  const [specialist, setSpecialist] = useState([])
+  const [tags, setTags] = useState([])
+  const [selectedItems, setSelectedItems] = useState([])
+
+  useEffect(() => {
+    getElements()
+    setSelectedItems([])
+  }, [searchBy])
+
 
   return (
     <div className='max-w-7xl mx-auto min-h-[80svh] mt-10 w-full'>
@@ -85,8 +140,28 @@ const Home = () => {
         <h1 className="text-2xl font-bold mb-5">Find Doctors acording to you needs</h1>
 
         <div className='flex items-center gap-3'>
-          <input type="text" placeholder='Search Doctors' className='p-2 border border-gray-200 rounded-lg w-full' />
-          <button className='bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600'>Search</button>
+          <Select
+            isMulti
+            className='w-[70svw]'
+            options={searchBy === 'specialization' ? specialist : tags}
+            value={selectedItems} // Bind selected items to state
+            onChange={(selected) => setSelectedItems(selected || [])} // Update selected items
+            isClearable={true}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button className='w-[300px]'>
+                {searchBy ? `Search By ${searchBy}` : 'Search By'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className='w-[300px]'>
+              <DropdownMenuLabel>Search By</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => setSearchBy('specialization')}>Specialization</DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => setSearchBy('keywords')}>Keywords</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
         </div>
       </div>
 
@@ -120,7 +195,7 @@ const doctorCard = ({ id, name, speciality, location, rating, experience }: Doct
         </div>
         <div className='flex items-end justify-between'>
           <p className='flex items-center gap-1 text-sm'>
-            <IoLocationOutline className='text-lg'/>
+            <IoLocationOutline className='text-lg' />
             {location}
           </p>
           <a href={`/doctors/10`} className="inline-flex items-center px-3 py-2 text-xs font-medium text-center text-white bg-blue-500 rounded-lg hover:bg-blue-600 ">

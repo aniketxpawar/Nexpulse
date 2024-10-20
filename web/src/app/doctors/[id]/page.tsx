@@ -68,10 +68,10 @@ const doctorProfile = () => {
   }
   useEffect(() => {
     fetchDoctorDetails()
-    setDate(new Date())
+    setDate(new Date().toUTCString())
   }, [])
 
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState<any>()
 
   useEffect(() => {
     if (date) {
@@ -80,14 +80,15 @@ const doctorProfile = () => {
   }, [date])
 
   const createCombinedDate = ({date, selectedTimeSlot}) => {
+
     // Get year, month, and day from the date state
     const year = date.getFullYear();
     const month = date.getMonth(); // Note: month is 0-indexed (0 = January)
     const day = date.getDate();
 
     // Get hours and minutes from the selectedTimeSlot
-    const hours = selectedTimeSlot.getHours();
-    const minutes = selectedTimeSlot.getMinutes();
+    const hours = new Date(selectedTimeSlot).getHours();
+    const minutes = new Date(selectedTimeSlot).getMinutes();
 
     // Create a new Date object combining both date and time
     const combinedDate = new Date(year, month, day, hours, minutes);
@@ -105,7 +106,7 @@ const doctorProfile = () => {
       userId: localStorage.getItem('userId'),
       doctorId: id,
       patientId: localStorage.getItem('userId'),
-      appointmentDate: selectedTimeSlot,
+      appointmentDate: createCombinedDate({date, selectedTimeSlot}),
       type: type,
       healthConcern: healthConcern
     })
@@ -291,7 +292,11 @@ const doctorProfile = () => {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={setDate}
+                          onSelect={(date) => {
+                            setDate(date?.toUTCString());
+                            console.log(date);
+                            
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -405,7 +410,11 @@ const doctorProfile = () => {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={setDate}
+                          onSelect={(date) => {
+                            setDate(date?.toUTCString)
+                            console.log(date);
+                            
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
