@@ -1,4 +1,4 @@
-import { Doctor, PrismaClient, Role } from '@prisma/client';
+import { Doctor, Patient, PrismaClient, Role, User } from '@prisma/client';
 
 const prisma = new PrismaClient()
 
@@ -31,6 +31,18 @@ const getUserByEmail = async (email: string) => {
       id: true,
       role: true,
       password: true,
+      doctor: true,
+      patient: true
+    },
+  });
+}
+
+const getUserById = async (id: number) => {
+  return await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      role: true,
       doctor: true,
       patient: true
     },
@@ -92,7 +104,14 @@ const getDoctorsRecord = async (doctorId: number): Promise<Doctor | null> => {
   });
 }
 
-const checkChatExists = async (patientId: number, doctorId: number): Promise<boolean> => {
+const getPatientRecord = async (patientId: number): Promise<Patient | null> => {
+  return await prisma.patient.findUnique({
+    where: { userId: patientId },
+    include: { user: true }, // Include patient details
+  });
+}
+
+const checkChatExists = async (patientId: number, doctorId: number): Promise<{exists: boolean, chatId: number | null}> => {
   const chatRecord = await prisma.chatParticipant.findFirst({
     where: {
       userId: patientId,
@@ -109,7 +128,10 @@ const checkChatExists = async (patientId: number, doctorId: number): Promise<boo
     // },
   });
 
-  return chatRecord !== null; // Return true if chat exists, false otherwise
+  return {
+    exists: chatRecord !== null,
+    chatId: chatRecord?.chatId || null,
+  };
 };
 
-export const userService = { createUser, getUserByEmail, updateUserProfile,createDoctorProfile,createPatientProfile, getDoctorsRecord, checkChatExists}
+export const userService = { createUser, getUserByEmail, getUserById, updateUserProfile,createDoctorProfile,createPatientProfile, getDoctorsRecord,getPatientRecord, checkChatExists}

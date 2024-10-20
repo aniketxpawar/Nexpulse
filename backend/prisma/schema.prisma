@@ -64,6 +64,8 @@ model Appointment {
   doctorId         Int
   patientId        Int
   appointmentDate  DateTime
+  healthConcern    String?  
+  link             String?
   status           AppointmentStatus
   type             AppointmentType
   createdAt        DateTime @default(now())
