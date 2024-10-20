@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import {sign} from "jsonwebtoken";
 import { userService } from "../services/userService";
-import { getValueByKey, setKeyValueWithExpiry, smembersWithKey } from "../services/redisServices";
+import { findSpecialistsByTags, getValueByKey, setKeyValueWithExpiry, smembersWithKey } from "../services/redisServices";
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -334,6 +334,18 @@ const getTags = async (req: Request, res: Response) => {
 
 const getDoctors = async (req: Request, res: Response) => {
   const {userId, specialist, tags} = req.body
+  if(tags && tags.length > 0) {
+    const specialists = await findSpecialistsByTags(tags)
+    const doctors = await userService.getDoctorsBySpecialist(specialists)
+    return res.json(doctors)
+  }
+  else if(specialist && specialist.length > 0) {
+    const doctors = await userService.getDoctorsBySpecialist(specialist)
+    return res.json(doctors)
+  }
+
+  const doctors = await userService.getAllDoctors();
+  res.json(doctors)
 
 }
 

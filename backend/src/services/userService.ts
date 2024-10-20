@@ -1,4 +1,4 @@
-import { Doctor, Patient, PrismaClient, Role, User } from '@prisma/client';
+import { Doctor, Patient, PrismaClient, Role, User  } from '@prisma/client';
 
 const prisma = new PrismaClient()
 
@@ -134,4 +134,33 @@ const checkChatExists = async (patientId: number, doctorId: number): Promise<{ex
   };
 };
 
-export const userService = { createUser, getUserByEmail, getUserById, updateUserProfile,createDoctorProfile,createPatientProfile, getDoctorsRecord,getPatientRecord, checkChatExists}
+const getDoctorsBySpecialist = async (specialists: string[]) => {
+  const specializationFilters = specialists.map((specialist: string) => ({
+    specialization: {
+      contains: specialist,
+      mode: 'insensitive' as const,  // Use 'insensitive' as a constant
+    },
+  }));
+
+  const doctors = await prisma.doctor.findMany({
+    where: {
+      OR: specializationFilters,  // Match any specialization in the array
+    },
+    include: {
+      user: true,  // Include related user details
+    },
+  });
+
+  return doctors; // Don't forget to return the found doctors
+};
+
+const getAllDoctors = async () => {
+  return await prisma.doctor.findMany({
+    include:{
+      user: true
+    }
+  })
+}
+
+export const userService = { createUser, getUserByEmail, getUserById, updateUserProfile,createDoctorProfile,createPatientProfile, 
+  getDoctorsRecord,getPatientRecord, checkChatExists, getDoctorsBySpecialist, getAllDoctors}
