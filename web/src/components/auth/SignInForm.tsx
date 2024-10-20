@@ -4,8 +4,9 @@ import { useState } from "react"
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "../ui/button";
 import { useRouter } from 'next/navigation';
+import axios from "axios";
+import { Button } from "../ui/button";
 
 
 const LabelInputContainer = ({
@@ -32,19 +33,13 @@ const SignInForm = ({type} : {type: string}) => {
     })
 
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-
-        //the server should return a json here with the user data
-        const data = {
-            email: '',
-            password: '',
-            type: type,
-            profileFilled: false
-        }
-        if(type === 'Patient') router.push('/doctors');
-        else if(type=='Doctor' && !data.profileFilled)router.push('/dashboard/profile');
-        else router.push('/dashboard/home');
+        const response = await axios.post('http://localhost:4000/user/login', data)
+        localStorage.setItem('email', data.email)
+        localStorage.setItem('role', type)
+        console.log(response.data);
+        router.push('verification')
     }
     return (
         <div className='bg-white p-6 rounded-xl flex flex-col gap-5 lg:w-[30svw] w-[90svw] border'>

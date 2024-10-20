@@ -5,6 +5,7 @@ import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
 import ClientWrapper from "@/components/ClientWrapper";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
             {children}
             <ConditionalFooter/>
           </ClientWrapper>
+          <Toaster/>
         </main>
       </body>
     </html>

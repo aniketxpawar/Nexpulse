@@ -159,118 +159,100 @@ const setProfile = async (req: Request, res: Response) => {
     // Start a transaction to ensure atomicity
     await prisma.$transaction(async (prisma) => {
       // Step 1: Update user with common fields using userService
-      await userService.updateUserProfile(Number(userId), {profilePic, phone, city});
+      await userService.updateUserProfile(Number(userId), { profilePic, phone, city });
 
       // Step 2: Check role and handle accordingly
       if (role === 'doctor') {
-        const availability = [
-          {
-            "day": "Monday",
-            "slots": [
-              "2024-10-21T18:00:00.000Z",
-              "2024-10-21T18:30:00.000Z",
-              "2024-10-21T19:00:00.000Z",
-              "2024-10-21T19:30:00.000Z",
-              "2024-10-21T20:00:00.000Z",
-              "2024-10-21T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Tuesday",
-            "slots": [
-              "2024-10-22T18:00:00.000Z",
-              "2024-10-22T18:30:00.000Z",
-              "2024-10-22T19:00:00.000Z",
-              "2024-10-22T19:30:00.000Z",
-              "2024-10-22T20:00:00.000Z",
-              "2024-10-22T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Wednesday",
-            "slots": [
-              "2024-10-23T18:00:00.000Z",
-              "2024-10-23T18:30:00.000Z",
-              "2024-10-23T19:00:00.000Z",
-              "2024-10-23T19:30:00.000Z",
-              "2024-10-23T20:00:00.000Z",
-              "2024-10-23T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Thursday",
-            "slots": [
-              "2024-10-24T18:00:00.000Z",
-              "2024-10-24T18:30:00.000Z",
-              "2024-10-24T19:00:00.000Z",
-              "2024-10-24T19:30:00.000Z",
-              "2024-10-24T20:00:00.000Z",
-              "2024-10-24T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Friday",
-            "slots": [
-              "2024-10-25T18:00:00.000Z",
-              "2024-10-25T18:30:00.000Z",
-              "2024-10-25T19:00:00.000Z",
-              "2024-10-25T19:30:00.000Z",
-              "2024-10-25T20:00:00.000Z",
-              "2024-10-25T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Saturday",
-            "slots": [
-              "2024-10-26T10:00:00.000Z",
-              "2024-10-26T10:30:00.000Z",
-              "2024-10-26T11:00:00.000Z",
-              "2024-10-26T11:30:00.000Z",
-              "2024-10-26T18:30:00.000Z",
-              "2024-10-26T19:00:00.000Z",
-              "2024-10-26T19:30:00.000Z",
-              "2024-10-26T20:00:00.000Z",
-              "2024-10-26T20:30:00.000Z"
-            ]
-          },
-          {
-            "day": "Sunday",
-            "slots": [
-              "2024-10-26T10:00:00.000Z",
-              "2024-10-26T10:30:00.000Z",
-              "2024-10-26T11:00:00.000Z",
-              "2024-10-26T11:30:00.000Z",
-              "2024-10-27T18:00:00.000Z",
-              "2024-10-27T18:30:00.000Z",
-              "2024-10-27T19:00:00.000Z",
-              "2024-10-27T19:30:00.000Z",
-              "2024-10-27T20:00:00.000Z",
-              "2024-10-27T20:30:00.000Z"
-            ]
-          }
-        ]
-        
-
+        const availability = {
+          "Monday": [
+            "2024-10-21T18:00:00.000Z",
+            "2024-10-21T18:30:00.000Z",
+            "2024-10-21T19:00:00.000Z",
+            "2024-10-21T19:30:00.000Z",
+            "2024-10-21T20:00:00.000Z",
+            "2024-10-21T20:30:00.000Z"
+          ],
+          "Tuesday": [
+            "2024-10-22T18:00:00.000Z",
+            "2024-10-22T18:30:00.000Z",
+            "2024-10-22T19:00:00.000Z",
+            "2024-10-22T19:30:00.000Z",
+            "2024-10-22T20:00:00.000Z",
+            "2024-10-22T20:30:00.000Z"
+          ],
+        "Wednesday": [
+            "2024-10-23T18:00:00.000Z",
+            "2024-10-23T18:30:00.000Z",
+            "2024-10-23T19:00:00.000Z",
+            "2024-10-23T19:30:00.000Z",
+            "2024-10-23T20:00:00.000Z",
+            "2024-10-23T20:30:00.000Z"
+          ],
+        "Thursday": [
+            "2024-10-24T18:00:00.000Z",
+            "2024-10-24T18:30:00.000Z",
+            "2024-10-24T19:00:00.000Z",
+            "2024-10-24T19:30:00.000Z",
+            "2024-10-24T20:00:00.000Z",
+            "2024-10-24T20:30:00.000Z"
+          ],
+          "Friday": [
+            "2024-10-25T18:00:00.000Z",
+            "2024-10-25T18:30:00.000Z",
+            "2024-10-25T19:00:00.000Z",
+            "2024-10-25T19:30:00.000Z",
+            "2024-10-25T20:00:00.000Z",
+            "2024-10-25T20:30:00.000Z"
+          ],
+        "Saturday": [
+            "2024-10-26T10:00:00.000Z",
+            "2024-10-26T10:30:00.000Z",
+            "2024-10-26T11:00:00.000Z",
+            "2024-10-26T11:30:00.000Z",
+            "2024-10-26T18:30:00.000Z",
+            "2024-10-26T19:00:00.000Z",
+            "2024-10-26T19:30:00.000Z",
+            "2024-10-26T20:00:00.000Z",
+            "2024-10-26T20:30:00.000Z"
+          ],
+        "Sunday": [
+            "2024-10-26T10:00:00.000Z",
+            "2024-10-26T10:30:00.000Z",
+            "2024-10-26T11:00:00.000Z",
+            "2024-10-26T11:30:00.000Z",
+            "2024-10-27T18:00:00.000Z",
+            "2024-10-27T18:30:00.000Z",
+            "2024-10-27T19:00:00.000Z",
+            "2024-10-27T19:30:00.000Z",
+            "2024-10-27T20:00:00.000Z",
+            "2024-10-27T20:30:00.000Z"
+          ]
+        }
         await userService.createDoctorProfile(Number(userId), { specialization, experience, licenseNumber, licenseAuthority, licenseExpiry, consultationCharge, clinicAddress, profile, availability });
 
       } else if (role === 'patient') {
         await userService.createPatientProfile(Number(userId), { dob, gender });
       } else {
+        // Return response if the role is invalid
         return res.status(400).json({ message: 'Invalid role' });
       }
     });
 
-    // Step 4: Respond with success
+    // Step 3: Respond with success (this happens only if no errors occur)
     return res.status(200).json({ message: 'Profile updated successfully' });
 
   } catch (error: any) {
     console.error('Error updating profile:', error);
-    if (error.message === 'All doctor fields are required' || error.message === 'Date of birth and gender are required') {
-      return res.status(400).json({ message: error.message });
+    
+    // Make sure only one response is sent in case of an error
+    if (!res.headersSent) {
+      return res.status(500).json({ message: 'Internal server error' });
     }
-    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+
 
 const getDoctorById = async (req: Request, res: Response) => {
   const { doctorId, userId } = req.body; // Assume these are passed as route parameters
