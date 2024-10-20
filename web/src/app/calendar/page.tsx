@@ -12,8 +12,8 @@ const HomePage: React.FC = () => {
       body: "<a class='bg-blue-700 p-2 rounded-md text-white' href='http://www.google.com' target='_blank'>Join now</a>",
       category: "time",
       dueDateClass: "",
-      start: "2024-10-21T10:30:00",
-      end: "2024-10-21T11:00:00",
+      start: "2024-10-20T10:30:00",
+      end: "2024-10-20T11:00:00",
     },
     {
       id: "2",

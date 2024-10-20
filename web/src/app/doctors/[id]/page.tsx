@@ -151,7 +151,7 @@ const doctorProfile = () => {
                   doctor?.user.profilePic ? doctor?.user.profilePic : doctorPic
                 }
                 alt={doctor?.user.fullName}
-                className="w-52 h-52 object-contain"
+                className="w-48 h-48 rounded-full object-cover"
               />
               <div className="w-full">
                 <div className="flex items-center justify-between">
@@ -421,21 +421,21 @@ const doctorProfile = () => {
                               if (!slot) return null; // Skip if slot is undefined
                               const date = new Date(slot);
 
-                                // Get hours and minutes
-                                let hours = date.getUTCHours();
-                                const minutes = date
-                                  .getUTCMinutes()
-                                  .toString()
-                                  .padStart(2, "0");
+                              // Get hours and minutes
+                              let hours = date.getUTCHours();
+                              const minutes = date
+                                .getUTCMinutes()
+                                .toString()
+                                .padStart(2, "0");
 
-                                // Determine AM or PM
-                                const ampm = hours >= 12 ? "PM" : "AM";
+                              // Determine AM or PM
+                              const ampm = hours >= 12 ? "PM" : "AM";
 
-                                // Convert 24-hour format to 12-hour format
-                                hours = hours % 12 || 12; // Convert 0 to 12 for midnight case
+                              // Convert 24-hour format to 12-hour format
+                              hours = hours % 12 || 12; // Convert 0 to 12 for midnight case
 
-                                // Format the time as "h:mm AM/PM"
-                                const timeWithAMPM = `${hours}:${minutes} ${ampm}`;
+                              // Format the time as "h:mm AM/PM"
+                              const timeWithAMPM = `${hours}:${minutes} ${ampm}`;
 
                               return (
                                 <Button

@@ -251,9 +251,6 @@ const setProfile = async (req: Request, res: Response) => {
   }
 };
 
-
-
-
 const getDoctorById = async (req: Request, res: Response) => {
   const { doctorId, userId } = req.body; // Assume these are passed as route parameters
 
@@ -325,6 +322,20 @@ const getSpecialist = async (req: Request, res: Response) => {
   }
 }
 
+const getTags = async (req: Request, res: Response) => {
+  try{
+    const tags = await smembersWithKey('tags') || []
+    res.json(tags)
+  } catch (error) {
+    console.error('Error fetching specialists:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const getDoctors = async (req: Request, res: Response) => {
+  const {userId, specialist, tags} = req.body
+
+}
 
 export const userController = {
     signup,
@@ -333,5 +344,7 @@ export const userController = {
     setProfile,
     getDoctorById,
     getPatientById,
-    getSpecialist
+    getSpecialist,
+    getTags,
+    getDoctors
   };
