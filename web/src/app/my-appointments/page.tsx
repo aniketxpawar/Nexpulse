@@ -38,11 +38,11 @@ const page = () => {
     const defaultDoctorPic = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn3.iconfinder.com%2Fdata%2Ficons%2Fmale-user-icons-2%2F500%2Fmuser-dr1-512.png&f=1&nofb=1&ipt=878bb4538e54a271464416c1b1c567df2f7338c4a0e060d628bea1a41aff23cc&ipo=images"
     function formatDateString(dateString) {
         const date = new Date(dateString); // Parse the date string
-    
+
         // Define arrays for day and month names
         const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+
         // Extract day, month, year, hours, and minutes
         const dayOfWeek = daysOfWeek[date.getDay()]; // Get day of the week
         const month = months[date.getMonth()]; // Get month name
@@ -50,11 +50,11 @@ const page = () => {
         const year = date.getFullYear(); // Full year
         let hours = date.getHours();
         const minutes = String(date.getMinutes()).padStart(2, '0');
-    
+
         // Determine AM or PM
         const period = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12 || 12; // Convert to 12-hour format
-    
+
         // Format the date string
         return `${dayOfWeek}, ${month} ${day}, ${year} at ${hours}:${minutes} ${period}`;
     }
@@ -99,7 +99,7 @@ const page = () => {
                                                     <h2>{appointment.type == 'online' ?
                                                         <span className='flex items-center gap-2'><RiRadioButtonLine /> Online Appointment</span> :
                                                         <span className='flex items-center gap-2'><MdPeople /> Clinic Appointment</span>}</h2>
-                                                    {appointment.type=='offline' && <h2 className='flex gap-1 items-center'>
+                                                    {appointment.type == 'offline' && <h2 className='flex gap-1 items-center'>
                                                         <IoLocation />
                                                         <span>{appointment.doctor.clinicAddress}</span>
                                                     </h2>}
@@ -107,6 +107,10 @@ const page = () => {
                                                         appointment.healthConcern && <h2 className='mt-2'>Health Concerns: {appointment.healthConcern}</h2>
                                                     }
                                                 </div>
+                                                <a href={`http://localhost:3000/doctors/${appointment.doctor.userId}`} target="_blank" className='text-white text-sm bg-blue-500 px-4 rounded-lg py-2 flex gap-2 items-center'>
+                                                    Doctor Profile
+                                                    <FaExternalLinkAlt />
+                                                </a>
                                                 {
                                                     appointment.type === 'online' ?
                                                         <a target='_blank' href={'http://localhost:5173/meeting/0c1ae4f3-1c07-43e0-881a-63845997356e'} className='text-white bg-blue-500 px-4 rounded-lg py-2 flex gap-2 items-center'>

@@ -55,26 +55,43 @@ export function Header({ className }: SidebarProps) {
     </Link>
   )
 
-  const getAuthButtons = () => (
+  const getAuthButtons = () => {
+    const role = localStorage.getItem('role')
+    const userId = localStorage.getItem('userId')
+    if(!userId){
+      return(
+        <div className="flex gap-3 items-center">
+          <Link
+            href="/signin"
+          >
+            <Typography variant="p">Login</Typography>
+          </Link>
+          <Link
+            href="/signup"
+          >
+            <Button color="ghost">
+              <Typography variant="p" className="text-white">
+                Sign Up
+              </Typography>
+            </Button>
+          </Link>
+        </div>
+      )
+    }
+
+    return(
     <div className="flex gap-3 items-center">
       <Link
-        href="/"
-        target="_blank"
-      >
-        <Typography variant="p">Login</Typography>
-      </Link>
-      <Link
-        href="/"
-        target="_blank"
+        href="/logout"
       >
         <Button color="ghost">
-          <Typography variant="p" className="text-white">
-            Sign Up
-          </Typography>
-        </Button>
+              <Typography variant="p" className="text-white">
+                Logout
+              </Typography>
+            </Button>
       </Link>
     </div>
-  )
+  )}
 
   const getHeaderItems = () => {
     return (
