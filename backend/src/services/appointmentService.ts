@@ -1,9 +1,15 @@
-import { AppointmentStatus, AppointmentType, Doctor, PrismaClient } from "@prisma/client";
+import { AppointmentStatus, AppointmentType, Doctor, Patient, PrismaClient, Role } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const findDoctor = async (userId: number): Promise<Doctor | null> => {
     return await prisma.doctor.findUnique({
+        where: { userId },
+    });
+}
+
+const findPatient = async (userId: number): Promise<Patient | null> => {
+    return await prisma.patient.findUnique({
         where: { userId },
     });
 }
@@ -29,32 +35,61 @@ const getDoctorWithDateAppointments = async (doctorId: number, appointmentDate: 
       });
 }
 
-const createAppointment = async (doctorId: number, patientId: number, appointmentDate: Date, type: AppointmentType) => {
+const createAppointmentRecord = async (
+    doctorId: number,
+    patientId: number,
+    appointmentDate: Date,
+    healthConcern: string | null,
+    type: AppointmentType,
+    link: string | null
+  ) => {
     return await prisma.appointment.create({
-        data: {
-            doctorId: doctorId,
-            patientId: patientId,
-            appointmentDate: new Date(appointmentDate),
-            type: type,
-            status: 'scheduled',  // Default status when creating an appointment
-        },
+      data: {
+        doctorId: doctorId,
+        patientId: patientId,
+        appointmentDate: new Date(appointmentDate),
+        healthConcern: healthConcern,
+        type: type,
+        link: link,
+        status: 'scheduled', 
+      },
     });
-}
+  };
+  
 
-const getAppointments = async (userId: string) => {
+  const getAppointments = async (userId: number, role: Role) => {
+    // Construct the `where` clause based on the user's role
+    const whereClause = role === Role.patient 
+      ? { patientId: userId }
+      : { doctorId: userId };
+  
+    return await prisma.appointment.findMany({
+      where: {
+        ...whereClause,  // Apply the constructed `where` clause
+        status: 'scheduled'
+      },
+    //   include: {
+    //     doctor: role == Role.doctor,
+    //     patient: role == Role.patient,
+    //   },
+    });
+  };
+
+  const getTodaysAppointment = async (doctorId: number,startOfDay: Date, endOfDay: Date) => {
     return await prisma.appointment.findMany({
         where: {
-            OR: [
-                { doctorId: Number(userId) },
-                { patientId: Number(userId) },
-            ],
+            doctorId: doctorId,
+            appointmentDate: {
+                gte: startOfDay,
+                lte: endOfDay,
+            },
         },
         include: {
-            doctor: true,
-            patient: true,
+            patient: true, // Populate patient data
         },
     });
-}
+  }
+  
 
 const findAppointment = async (id: string) => {
     return await prisma.appointment.findUnique({
@@ -71,9 +106,11 @@ const updateAppointmentStatus = async (id: number, status: AppointmentStatus) =>
 
 export const appointmentService = {
     findDoctor,
+    findPatient,
     getDoctorWithDateAppointments,
-    createAppointment,
+    createAppointmentRecord,
     getAppointments,
+    getTodaysAppointment,
     findAppointment,
     updateAppointmentStatus
 }

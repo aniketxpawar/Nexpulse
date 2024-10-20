@@ -267,20 +267,51 @@ const getDoctorById = async (req: Request, res: Response) => {
     }
 
     // Step 3: Check if requester is not the doctor
-    let chatExists = false;
+    let chatCheck: {exists: boolean, chatId: number | null} = {exists: false, chatId: null};
     if (Number(userId) !== doctor.userId) {
-      chatExists = await userService.checkChatExists(Number(userId), Number(doctorId))
+      chatCheck = await userService.checkChatExists(Number(userId), Number(doctorId))
     }
 
     // Step 5: Return doctor details along with chat existence
     return res.json({
       doctor,
-      chatExists, // Attach chatExists field
+      chatExists: chatCheck.exists,
+      chatId: chatCheck.chatId
     });
 
   } catch (error) {
     console.error('Error fetching doctor details:', error);
     return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getPatientById = async (req: Request, res: Response) => {
+  const { patientId, userId } = req.body;
+
+  try {
+    // Fetch the user record by patientId
+    const patient: any = await userService.getPatientRecord(Number(patientId))
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    let chatCheck: {exists: boolean, chatId: number | null} = {exists: false, chatId: null};
+
+    // If userId is not equal to patientId, check if chat exists
+    if (userId !== patientId) {
+      chatCheck = await userService.checkChatExists(Number(patientId), Number(userId));
+    }
+
+    // Return the patient record along with chat information if applicable
+    res.status(200).json({
+      patient,
+      chatExists: chatCheck.exists,
+      chatId: chatCheck.chatId
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error fetching patient details" });
   }
 };
 
@@ -301,5 +332,6 @@ export const userController = {
     login,
     setProfile,
     getDoctorById,
+    getPatientById,
     getSpecialist
   };
