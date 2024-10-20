@@ -1,0 +1,38 @@
+#calendar {
+    padding: 16px;
+    background-color: #f7f9fc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    height: calc(100vh - 32px);
+    /* Give some padding from top/bottom */
+}
+
+.tui-full-calendar-timegrid {
+    border-radius: 8px;
+}
+
+.tui-full-calendar-timegrid-time {
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tui-full-calendar-weekday-grid-line {
+    background-color: #fff;
+}
+
+.tui-full-calendar-weekday-schedule-block {
+    background-color: #ffbb3b;
+    /* Adjust schedule block background */
+    color: #fff;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.tui-full-calendar-section-button {
+    display: none !important;
+}
+
+.tui-full-calendar-layout {
+    height: 0% !important;
+}

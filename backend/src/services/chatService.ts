@@ -3,6 +3,22 @@ import { PrismaClient, Chat, Message, User } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const chatService = {
+
+  async createChatroom(participants: number[]) {
+    return await prisma.chat.create({
+      data: {
+          isActivated: true,
+          isBlocked: false,
+          participants: {
+              create: participants.map((userId: number) => ({
+                  user: {
+                      connect: { id: userId },
+                  },
+              })),
+          },
+      },
+  });
+  },
   // Get chat rooms by user, filtering by userId and role
   async getChatRoomsByUser(userId: number, role: "doctor" | "patient") {
     return await prisma.chat.findMany({
