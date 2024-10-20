@@ -21,15 +21,27 @@ export default function CalendarPage() {
   currentDate.setMinutes(currentDate.getMinutes() + 30);
 
 
-  const schedule = [
+  const schedules = [
     {
-      id: 1,
-      title: "Appointment with John Doe",
-      body: "link: https://meet.google.com/xyz",
-      start: new Date().toISOString(),
-      end: currentDate.toISOString(),
-    }
-  ]
+      id: "1",
+      calendarId: "1",
+      title: "Meeting",
+      body: "<a class='bg-blue-700 p-2 rounded-md text-white' href='http://www.google.com' target='_blank'>Join now</a>",
+      category: "time",
+      dueDateClass: "",
+      start: "2024-10-21T10:30:00",
+      end: "2024-10-21T11:00:00",
+    },
+    {
+      id: "2",
+      calendarId: "1",
+      title: "Conference",
+      category: "time",
+      dueDateClass: "",
+      start: "2024-10-22T09:00:00",
+      end: "2024-10-22T11:00:00",
+    },
+  ];
   const [selectedView, setSelectedView] = useState("month");
   // Update setSelectedViewType to use the correct function that updates the state
   const setSelectedViewType = (view: string) => setSelectedView(view);
@@ -40,7 +52,7 @@ export default function CalendarPage() {
         <DropdownMenuCheckboxes ViewType={selectedView} setSelectedViewType={setSelectedViewType} />
       </div>
       <div className="border p-5 rounded-xl">
-        <Calendar prop={selectedView} schedule={schedule} />
+        <Calendar schedules={schedules} />
       </div>
     </div>
   </div>

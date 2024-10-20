@@ -58,22 +58,30 @@ const createAppointmentRecord = async (
   
 
   const getAppointments = async (userId: number, role: Role) => {
-    // Construct the `where` clause based on the user's role
+    // Construct the ⁠ where ⁠ clause based on the user's role
     const whereClause = role === Role.patient 
       ? { patientId: userId }
       : { doctorId: userId };
   
     return await prisma.appointment.findMany({
       where: {
-        ...whereClause,  // Apply the constructed `where` clause
+        ...whereClause,  // Apply the constructed ⁠ where ⁠ clause
         status: 'scheduled'
       },
-    //   include: {
-    //     doctor: role == Role.doctor,
-    //     patient: role == Role.patient,
-    //   },
+      include: {
+        doctor: {
+          include: {
+            user: true,  // Include user details for the doctor
+          },
+        },
+        patient: {
+          include: {
+            user: true,  // Include user details for the patient
+          },
+        },
+      },
     });
-  };
+};
 
   const getTodaysAppointment = async (doctorId: number,startOfDay: Date, endOfDay: Date) => {
     return await prisma.appointment.findMany({
