@@ -36,11 +36,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from 'lucide-react';
 import { addMinutes, format, parseISO, set } from 'date-fns';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { doctorPic } from '@/assets/defaultProfiles';
 const doctorProfile = () => {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const id = useParams().id
   console.log(id);
@@ -68,7 +69,7 @@ const doctorProfile = () => {
   }
   useEffect(() => {
     fetchDoctorDetails()
-    setDate(new Date().toUTCString())
+    setDate(new Date())
   }, [])
 
   const [date, setDate] = useState<any>()
@@ -100,23 +101,31 @@ const doctorProfile = () => {
   const allotTimeSlot = async () => {
     if (!selectedTimeSlot) {
       toast.error('Please select a time slot')
+      setBooking(false)
       return
     }
-    const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
-      userId: localStorage.getItem('userId'),
-      doctorId: id,
-      patientId: localStorage.getItem('userId'),
-      appointmentDate: createCombinedDate({date, selectedTimeSlot}),
-      type: type,
-      healthConcern: healthConcern
-    })
-    console.log(res);
+    try{
+      const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
+        userId: localStorage.getItem('userId'),
+        doctorId: id,
+        patientId: localStorage.getItem('userId'),
+        appointmentDate: createCombinedDate({date, selectedTimeSlot}),
+        type: type,
+        healthConcern: healthConcern
+      })
+      console.log(res);
+      router.push('/my-appointments')
+    }catch(err){}
+    finally{
+      setBooking(false)
+    }
+    
   }
 
   const [booking, setBooking] = useState(false)
   const [timeSlots, setTimeSlots] = useState<string[]>([])
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>()
-  const [type, setType] = useState('');
+  const [type, setType] = useState('offline');
   const [healthConcern, setHealthConcern] = useState('')
 
   const handleMessage = async() => {
@@ -255,6 +264,7 @@ const doctorProfile = () => {
             <div className="w-full flex items-center justify-center">
               <Tabs
                 defaultValue="clinic"
+                onValueChange={(value) => setType(value == "online" ? "online" : "offline")}
                 className="w-full flex flex-col items-center justify-center"
               >
                 <TabsList>
@@ -292,11 +302,7 @@ const doctorProfile = () => {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={(date) => {
-                            setDate(date?.toUTCString());
-                            console.log(date);
-                            
-                          }}
+                          onSelect={setDate}
                           initialFocus
                         />
                       </PopoverContent>
@@ -410,11 +416,7 @@ const doctorProfile = () => {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={(date) => {
-                            setDate(date?.toUTCString)
-                            console.log(date);
-                            
-                          }}
+                          onSelect={setDate}
                           initialFocus
                         />
                       </PopoverContent>

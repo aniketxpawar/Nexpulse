@@ -336,6 +336,7 @@ const getDoctors = async (req: Request, res: Response) => {
   const {userId, specialist, tags} = req.body
   if(tags && tags.length > 0) {
     const specialists = await findSpecialistsByTags(tags)
+    console.log(specialists)
     const doctors = await userService.getDoctorsBySpecialist(specialists)
     return res.json(doctors)
   }

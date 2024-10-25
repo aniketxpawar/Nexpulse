@@ -148,7 +148,7 @@ const doctorCard = ({ id, name, specialization, clinicAddress, rating, experienc
       <img className="rounded-lg object-contain mt-2 h-48 w-full" src={user.profilePic ? user.profilePic : patientPic} alt="" />
       <div className="p-3">
         <a href="#">
-          <h5 className="mb-1 text-2xl font-bold tracking-tight text-gray-900">{user.fullName}</h5>
+          <h5 className="mb-1 text-2xl font-bold tracking-tight text-gray-900">Dr. {user.fullName}</h5>
         </a>
 
         <p className="font-normal">{specialization}</p>

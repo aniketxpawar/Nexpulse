@@ -86,6 +86,7 @@ export default function DashboardPage() {
   setSchedules(newSchedule)
 }, [upcomingAppointments])
 
+
   return (
     <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto"> {/* Adjusted for dynamic height */}
       {
@@ -147,7 +148,25 @@ function GreetCard({ doctor, upcoming }: { doctor: any; upcoming: number }) {
 
 function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
   console.log(upcomingAppointments);
+
+  function formatDateTime(dateString: Date) {
+    const date = new Date(dateString);
   
+    // Options to format the date as "Mon Oct 28 2024, 7:00 PM"
+    const options = {
+      weekday: "short", // "Mon"
+      year: "numeric", // "2024"
+      month: "short", // "Oct"
+      day: "numeric", // "28"
+      hour: "numeric", // "7"
+      minute: "numeric", // "00"
+      hour12: true, // "PM"
+      timeZone: "UTC", // Keep it in UTC
+    };
+  
+    // Format the date using the options
+    return date.toLocaleString("en-US", options);
+  }
   return <div className="bg-white rounded-xl p-4 shadow-lg border">
     <h1 className="font-bold text-2xl pb-4">Upcoming Appointments</h1>
     <div className="grid grid-cols-1 gap-4 h-[60svh] overflow-y-scroll">
@@ -158,7 +177,7 @@ function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
             <div className='w-full flex justify-between items-center'>
               <div>
                 <h1 className='text-xl font-bold'>{appointment.patient.user.fullName}</h1>
-                <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {appointment.appointmentDate}</h2>
+                <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {formatDateTime(appointment.appointmentDate)}</h2>
                 <h2>{appointment.type == 'online' ?
                   <span className='flex items-center gap-2'><RiRadioButtonLine /> Online Appointment</span> :
                   <span className='flex items-center gap-2'><MdPeople /> Clinic Appointment</span>}</h2>
