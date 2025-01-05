@@ -1,0 +1,6 @@
+1) Pull the Redis Docker Image : docker pull redis
+2) Run the Redis Container : docker run --name redis-server -d -p 6379:6379 redis
+3) Persist Redis Data : docker run --name redis-server -d -p 6379:6379 -v redis-data:/data redis
+4) Access Redis CLI : docker exec -it redis-server redis-cli
+5) Stop and Remove the Redis Container : docker stop redis-server, docker rm redis-server
+
