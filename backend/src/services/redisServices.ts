@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 const redis = new Redis({
   host: process.env.REDIS_HOST,  // replace with your Redis host
   port: Number(process.env.REDIS_PORT),         // replace with your Redis port
-  password: process.env.REDIS_PASSWORD,       // optional, if your Redis requires a password
+  password: process.env.REDIS_PASSWORD || undefined,       // optional, if your Redis requires a password
 });
 
 // Function to add a key-value pair with an expiry
