@@ -46,7 +46,7 @@ const MyTUICalendar: React.FC<MyTUICalendarProps> = ({ prop, schedules }) => {
     return () => calendar.destroy();
   }, [prop, schedules]);
 
-  return <div id="calendar" className="" />;
+  return <div id="calendar" className="h-full border" />;
 };
 
 export default MyTUICalendar;

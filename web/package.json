@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.1.8",
+    "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-navigation-menu": "^1.2.0",
@@ -28,6 +29,7 @@
     "input-otp": "^1.2.4",
     "ldrs": "^1.0.2",
     "lucide-react": "^0.429.0",
+    "mediasoup-client": "^3.8.1",
     "next": "14.2.6",
     "react": "^18",
     "react-day-picker": "^8.10.1",
@@ -36,6 +38,7 @@
     "react-icons": "^5.3.0",
     "react-redux": "^9.1.2",
     "react-select": "^5.8.1",
+    "react-time-range": "^1.0.4",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "tailwind-merge": "^2.5.2",
