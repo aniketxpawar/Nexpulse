@@ -73,9 +73,9 @@ const SignInForm = ({type} : {type: string}) => {
             </form>
 
             <div className="flex justify-between">
-                <p>Don't have an account? <a href={type=='Patient' ? "/signup": "/doctor-signup"} className="text-blue-500 hover:underline">Sign up</a></p>
+                <p>Don't have an account? <a href={type=='patient' ? "/signup": "/doctor-signup"} className="text-blue-500 hover:underline">Sign up</a></p>
                 {
-                    type === 'Patient' ? <p>Are you a doctor? <a href="/doctor-signin" className="text-blue-500 hover:underline">Sign in</a></p> : <p>Are you a patient? <a href="/signin" className="text-blue-500 hover:underline">Sign in</a></p>
+                    type === 'patient' ? <p>Are you a doctor? <a href="/doctor-signin" className="text-blue-500 hover:underline">Sign in</a></p> : <p>Are you a patient? <a href="/signin" className="text-blue-500 hover:underline">Sign in</a></p>
                 }
             </div>
         </div>

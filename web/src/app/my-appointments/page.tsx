@@ -149,12 +149,18 @@ const page = () => {
                           </h2>
                         )}
                       </div>
+                      <a
+                          target="_blank"
+                          href={`http://localhost:3000/doctors/${appointment.doctor.userId}`}
+                          className="text-white bg-blue-500 px-4 rounded-lg py-2 flex gap-2 items-center"
+                        >
+                          Doctor Profile
+                          <FaExternalLinkAlt />
+                        </a>
                       {appointment.type === "online" ? (
                         <a
                           target="_blank"
-                          href={
-                            "http://localhost:5173/meeting/0c1ae4f3-1c07-43e0-881a-63845997356e"
-                          }
+                          href={appointment.link}
                           className="text-white bg-blue-500 px-4 rounded-lg py-2 flex gap-2 items-center"
                         >
                           Join Meeting

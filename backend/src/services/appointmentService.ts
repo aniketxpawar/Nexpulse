@@ -80,8 +80,12 @@ const createAppointmentRecord = async (
           },
         },
       },
+      orderBy: {
+        appointmentDate: 'asc',  // Order by createdAt in descending order
+      },
     });
-};
+  };
+  
 
   const getTodaysAppointment = async (doctorId: number,startOfDay: Date, endOfDay: Date) => {
     return await prisma.appointment.findMany({

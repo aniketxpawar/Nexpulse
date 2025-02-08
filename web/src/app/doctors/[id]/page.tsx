@@ -36,11 +36,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from 'lucide-react';
 import { addMinutes, format, parseISO, set } from 'date-fns';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { doctorPic } from '@/assets/defaultProfiles';
 const doctorProfile = () => {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const id = useParams().id
   console.log(id);
@@ -56,6 +57,7 @@ const doctorProfile = () => {
     setTimeSlots(res.data.availableSlots)
     setLoading(false)
   }
+  const [chatId, setChatId] = useState(null)
   const fetchDoctorDetails = async () => {
     const res = await axios.post('http://localhost:4000/user/get-doctor', {
       doctorId: id,
@@ -63,13 +65,14 @@ const doctorProfile = () => {
     })
     console.log(res);
     setDoctor(res.data.doctor)
+    setChatId(res.data.chatId)
   }
   useEffect(() => {
     fetchDoctorDetails()
     setDate(new Date())
   }, [])
 
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState<any>()
 
   useEffect(() => {
     if (date) {
@@ -78,14 +81,15 @@ const doctorProfile = () => {
   }, [date])
 
   const createCombinedDate = ({date, selectedTimeSlot}) => {
+
     // Get year, month, and day from the date state
     const year = date.getFullYear();
     const month = date.getMonth(); // Note: month is 0-indexed (0 = January)
     const day = date.getDate();
 
     // Get hours and minutes from the selectedTimeSlot
-    const hours = selectedTimeSlot.getHours();
-    const minutes = selectedTimeSlot.getMinutes();
+    const hours = new Date(selectedTimeSlot).getHours();
+    const minutes = new Date(selectedTimeSlot).getMinutes();
 
     // Create a new Date object combining both date and time
     const combinedDate = new Date(year, month, day, hours, minutes);
@@ -97,24 +101,51 @@ const doctorProfile = () => {
   const allotTimeSlot = async () => {
     if (!selectedTimeSlot) {
       toast.error('Please select a time slot')
+      setBooking(false)
       return
     }
-    const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
-      userId: localStorage.getItem('userId'),
-      doctorId: id,
-      patientId: localStorage.getItem('userId'),
-      appointmentDate: selectedTimeSlot,
-      type: type,
-      healthConcern: healthConcern
-    })
-    console.log(res);
+    try{
+      const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
+        userId: localStorage.getItem('userId'),
+        doctorId: id,
+        patientId: localStorage.getItem('userId'),
+        appointmentDate: createCombinedDate({date, selectedTimeSlot}),
+        type: type,
+        healthConcern: healthConcern
+      })
+      console.log(res);
+      router.push('/my-appointments')
+    }catch(err){}
+    finally{
+      setBooking(false)
+    }
+    
   }
 
   const [booking, setBooking] = useState(false)
   const [timeSlots, setTimeSlots] = useState<string[]>([])
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>()
-  const [type, setType] = useState('');
+  const [type, setType] = useState('offline');
   const [healthConcern, setHealthConcern] = useState('')
+
+  const handleMessage = async() => {
+    if(chatId) {
+      window.location.href = `/chatroom/${chatId}`
+    }else{
+      try{
+        const res = await axios.post('http://localhost:4000/chat/create-chat', {
+          participants: [Number(localStorage.getItem('userId')), Number(doctor.userId)]
+        })
+        console.log(res);
+        
+        if(res?.data?.chat?.id){
+          window.location.href = `/chatroom/${res?.data?.chat?.id}`
+        }
+      }catch(err){
+        console.log(err)
+      }
+    }
+  }
   return (
     <div className="max-w-7xl mx-auto w-full mt-10 min-h-[80svh]">
       {loading ? (
@@ -136,7 +167,7 @@ const doctorProfile = () => {
                 <div className="flex items-center justify-between">
                   {/* @ts-ignore */}
                   <h1 className="text-3xl font-bold">
-                    {doctor?.user.fullName}
+                    Dr. {doctor?.user.fullName}
                   </h1>
                   {/* @ts-ignore */}
                   {doctor?.verfied && (
@@ -154,7 +185,7 @@ const doctorProfile = () => {
                 </div>
                 <h1>Consultation Charge: Rs.{doctor?.consultationCharge}</h1>
                 <div className="flex gap-3 mt-2 text-sm">
-                  <a className="flex items-center justify-center bg-blue-400 text-white gap-2 rounded-lg py-2 w-[180px] hover:cursor-pointer">
+                  <a onClick={handleMessage} className="flex items-center justify-center bg-blue-400 text-white gap-2 rounded-lg py-2 w-[180px] hover:cursor-pointer">
                     <MdMessage />
                     <span>Message</span>
                   </a>
@@ -233,6 +264,7 @@ const doctorProfile = () => {
             <div className="w-full flex items-center justify-center">
               <Tabs
                 defaultValue="clinic"
+                onValueChange={(value) => setType(value == "online" ? "online" : "offline")}
                 className="w-full flex flex-col items-center justify-center"
               >
                 <TabsList>
