@@ -39,7 +39,7 @@ export default (io: Server) => {
         });
 
         const chats = await chatService.getAllChats(Number(userId));
-        
+
         const result: Record<number, Omit<any, "id">> = {};
 
         // Store the remaining chat properties using id as key
@@ -48,11 +48,11 @@ export default (io: Server) => {
           result[chat.id] = {
             ...chat,
             lastMessage: lastMessage || null, // Attach lastMessage, or null if no messages exist
-            unseenCount: 0
+            unseenCount: 0,
           };
         }
 
-        console.log(result);
+        // console.log(result);
 
         socket.emit("init", result);
       })

@@ -199,7 +199,12 @@ const WeekSchedule = () => {
 
   const handleSaveAvailability = async (day) => {
     // Check for valid time range
-    if (tempTimes.some(({ start, end }) => new Date(`1970-01-01T${start}:00`) >= new Date(`1970-01-01T${end}:00`))) {
+    if (
+      tempTimes.some(
+        ({ start, end }) =>
+          new Date(`1970-01-01T${start}:00`) >= new Date(`1970-01-01T${end}:00`)
+      )
+    ) {
       alert("Invalid time slots: start time must be earlier than end time");
       return;
     }
@@ -207,18 +212,29 @@ const WeekSchedule = () => {
     // Generate time slots from the selected range
     const generatedSlots = tempTimes.flatMap(({ start, end }) => {
       const slots = [];
-      let current = new Date(`1970-01-01T${start}:00`);
-      const endTime = new Date(`1970-01-01T${end}:00`);
+      const now = new Date(); // Get today's date in local timezone
+      const current = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        ...start.split(":").map(Number)
+      );
+      const endTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        ...end.split(":").map(Number)
+      );
       const durationMs = duration * 60 * 1000;
 
       while (current < endTime) {
         const next = new Date(current.getTime() + durationMs);
         if (next > endTime) break;
         slots.push({
-          start: current.toISOString().substring(11, 16),
-          end: next.toISOString().substring(11, 16),
+          start: current.toISOString(), // Full date-time string in ISO format
+          end: next.toISOString(),
         });
-        current = next;
+        current.setTime(next.getTime()); // Move to the next slot
       }
       return slots;
     });
@@ -231,15 +247,20 @@ const WeekSchedule = () => {
 
     try {
       // Send the generated slots to the backend (example POST request)
-      const response = await axios.post("http://localhost:4000/api/availability", {
-        [day]: generatedSlots,
-      });
+      const response = await axios.post(
+        "http://localhost:4000/appointment/availability",
+        {
+          doctorId: localStorage.getItem("userId"),
+          availability: {
+            [day]: generatedSlots,
+          },
+        }
+      );
       console.log("Generated slots saved successfully:", response.data);
       console.log({
         day,
         slots: generatedSlots,
       });
-      
     } catch (error) {
       console.error("Error saving generated slots:", error);
     }
