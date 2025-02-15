@@ -48,7 +48,7 @@ const getDoctorWithDateAppointments = async (
 
 const getDoctorAvailability = async (doctorId: number): Promise<any> => {
   const doctor = await prisma.doctor.findUnique({
-    where: { id: doctorId },
+    where: { userId: doctorId },
     select: { availability: true },
   });
   return doctor?.availability || {};

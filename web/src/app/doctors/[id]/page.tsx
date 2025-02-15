@@ -9,6 +9,14 @@ import { FaStar } from "react-icons/fa";
 import { cardio } from 'ldrs'
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { addMinutes, format, parseISO, set } from 'date-fns';
+import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+
+// Convert local time to UTC
+const convertLocalToUTC = (date) => {
+  if (!date) return null;
+  return zonedTimeToUtc(date, 'UTC'); // Convert local time to UTC
+};
 
 const LabelInputContainer = ({
   children,
@@ -35,7 +43,6 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from 'lucide-react';
-import { addMinutes, format, parseISO, set } from 'date-fns';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -75,12 +82,13 @@ const doctorProfile = () => {
   const [date, setDate] = useState<any>()
 
   useEffect(() => {
+    console.log(date)
     if (date) {
       fetchAvailableSlots()
     }
   }, [date])
 
-  const createCombinedDate = ({date, selectedTimeSlot}) => {
+  const createCombinedDate = ({ date, selectedTimeSlot }) => {
 
     // Get year, month, and day from the date state
     const year = date.getFullYear();
@@ -100,27 +108,30 @@ const doctorProfile = () => {
 
   const allotTimeSlot = async () => {
     if (!selectedTimeSlot) {
-      toast.error('Please select a time slot')
-      setBooking(false)
-      return
+      toast.error('Please select a time slot');
+      setBooking(false);
+      return;
     }
-    try{
+    try {
+      const localAppointmentDate = createCombinedDate({ date, selectedTimeSlot });
+      const utcAppointmentDate = convertLocalToUTC(localAppointmentDate);
+  
       const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
         userId: localStorage.getItem('userId'),
         doctorId: id,
         patientId: localStorage.getItem('userId'),
-        appointmentDate: createCombinedDate({date, selectedTimeSlot}),
+        appointmentDate: utcAppointmentDate, // Send UTC time to backend
         type: type,
         healthConcern: healthConcern
-      })
+      });
       console.log(res);
-      router.push('/my-appointments')
-    }catch(err){}
-    finally{
-      setBooking(false)
+      router.push('/my-appointments');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBooking(false);
     }
-    
-  }
+  };
 
   const [booking, setBooking] = useState(false)
   const [timeSlots, setTimeSlots] = useState<string[]>([])
@@ -128,20 +139,20 @@ const doctorProfile = () => {
   const [type, setType] = useState('offline');
   const [healthConcern, setHealthConcern] = useState('')
 
-  const handleMessage = async() => {
-    if(chatId) {
+  const handleMessage = async () => {
+    if (chatId) {
       window.location.href = `/chatroom/${chatId}`
-    }else{
-      try{
+    } else {
+      try {
         const res = await axios.post('http://localhost:4000/chat/create-chat', {
           participants: [Number(localStorage.getItem('userId')), Number(doctor.userId)]
         })
         console.log(res);
-        
-        if(res?.data?.chat?.id){
+
+        if (res?.data?.chat?.id) {
           window.location.href = `/chatroom/${res?.data?.chat?.id}`
         }
-      }catch(err){
+      } catch (err) {
         console.log(err)
       }
     }
@@ -316,35 +327,23 @@ const doctorProfile = () => {
                             // @ts-ignore
                             timeSlots.map((slot) => {
                               if (!slot) return null; // Skip if slot is undefined
-                              const date = new Date(slot);
+                              const date = new Date(slot.start);
 
-                              // Get hours and minutes
-                              let hours = date.getUTCHours();
-                              const minutes = date
-                                .getUTCMinutes()
-                                .toString()
-                                .padStart(2, "0");
-
-                              // Determine AM or PM
-                              const ampm = hours >= 12 ? "PM" : "AM";
-
-                              // Convert 24-hour format to 12-hour format
-                              hours = hours % 12 || 12; // Convert 0 to 12 for midnight case
-
-                              // Format the time as "h:mm AM/PM"
-                              const timeWithAMPM = `${hours}:${minutes} ${ampm}`;
+                              // Convert to local time (12-hour format with AM/PM)
+                              const timeWithAMPM = date.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true, // Ensures AM/PM format
+                              });
 
                               return (
                                 <Button
-                                  key={slot}
+                                  key={slot.start} // Use slot.start instead of slot as key
                                   onClick={() => {
                                     setSelectedTimeSlot(slot);
                                   }}
-                                  className={`hover:bg-blue-500 ${
-                                    selectedTimeSlot == slot
-                                      ? "bg-blue-700"
-                                      : "bg-blue-400"
-                                  }`}
+                                  className={`hover:bg-blue-500 ${selectedTimeSlot == slot ? "bg-blue-700" : "bg-blue-400"
+                                    }`}
                                 >
                                   {timeWithAMPM}
                                 </Button>
@@ -454,11 +453,10 @@ const doctorProfile = () => {
                                   onClick={() => {
                                     setSelectedTimeSlot(slot);
                                   }}
-                                  className={`hover:bg-blue-500 ${
-                                    selectedTimeSlot == slot
+                                  className={`hover:bg-blue-500 ${selectedTimeSlot == slot
                                       ? "bg-blue-700"
                                       : "bg-blue-400"
-                                  }`}
+                                    }`}
                                 >
                                   {timeWithAMPM}
                                 </Button>

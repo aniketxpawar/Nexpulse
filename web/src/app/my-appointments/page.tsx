@@ -81,22 +81,22 @@ const page = () => {
             <div className="flex border items-center rounded-lg px-4 py-3 gap-5">
               <img
                 src={
-                  patient.user.profilePic
-                    ? patient.user.profilePic
+                  patient?.user?.profilePic
+                    ? patient?.user?.profilePic
                     : defaultProfilePic
                 }
-                alt={patient.user.fullName}
+                alt={patient?.user?.fullName}
                 className="w-48 h-48 object-contain"
               />
               <div className="w-full">
                 <div className="flex items-center justify-between">
                   <h1 className="text-3xl font-bold">
-                    {patient.user.fullName}
+                    {patient?.user?.fullName}
                   </h1>
                 </div>
-                <h2>{patient.gender}</h2>
-                <h1>Date of birth: {formatDate(patient.dob)}</h1>
-                <h1 className="flex items-center gap-1">{patient.city}</h1>
+                <h2>{patient?.gender}</h2>
+                <h1>Date of birth: {formatDate(patient?.dob)}</h1>
+                <h1 className="flex items-center gap-1">{patient?.city}</h1>
               </div>
             </div>
             <div className="w-full border p-5 rounded-lg">
@@ -110,18 +110,18 @@ const page = () => {
                     <img
                       src={
                         appointment?.doctor?.user?.profilePic
-                          ? appointment.doctor.user.profilePic
+                          ? appointment?.doctor?.user?.profilePic
                           : defaultDoctorPic
                       }
-                      alt={appointment.doctor.fullName}
+                      alt={appointment?.doctor?.fullName}
                       className="w-36 h-36 rounded-full object-cover"
                     />
                     <div className="w-full flex justify-between items-center">
                       <div>
                         <h1 className="text-xl font-bold">
-                          {appointment.doctor.user.fullName}
+                          {appointment?.doctor?.user.fullName}
                         </h1>
-                        <h2>{appointment.doctor.specialization}</h2>
+                        <h2>{appointment?.doctor?.specialization}</h2>
                         <h2 className="flex items-center gap-1 mt-2">
                           <IoCalendar />{" "}
                           {formatDateTime(appointment.appointmentDate)}
@@ -140,7 +140,7 @@ const page = () => {
                         {appointment.type == "offline" && (
                           <h2 className="flex gap-1 items-center">
                             <IoLocation />
-                            <span>{appointment.doctor.clinicAddress}</span>
+                            <span>{appointment?.doctor?.clinicAddress}</span>
                           </h2>
                         )}
                         {appointment.healthConcern && (
@@ -151,7 +151,7 @@ const page = () => {
                       </div>
                       <a
                           target="_blank"
-                          href={`http://localhost:3000/doctors/${appointment.doctor.userId}`}
+                          href={`http://localhost:3000/doctors/${appointment?.doctor?.userId}`}
                           className="text-white bg-blue-500 px-4 rounded-lg py-2 flex gap-2 items-center"
                         >
                           Doctor Profile
