@@ -167,20 +167,74 @@ export function DropdownMenuCheckboxes({ ViewType, setSelectedViewType }: { View
 
 
 
+
 const WeekSchedule = () => {
-  const [availability, setAvailability] = useState({
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: [],
-    Sunday: [],
-  });
+  const days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+
+  const [availability, setAvailability] = useState(
+    days.reduce((acc, day) => ({ ...acc, [day]: [] }), {})
+  );
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const response = await axios.post("http://localhost:4000/appointment/get-slots", {
+          doctorId: localStorage.getItem("userId"),
+        });
+
+        const fetchedSlots = response.data;
+        console.log("Fetched availability slots:", fetchedSlots);
+
+        // Convert slots to local time and ensure all days are present
+        const localSchedule = convertToLocalTime(fetchedSlots);
+        console.log("Converted to local time:", localSchedule);
+
+        // Merge fetched slots with existing days structure
+        const completeSchedule = days.reduce((acc, day) => ({
+          ...acc,
+          [day]: localSchedule[day] || []
+        }), {});
+
+        setAvailability(completeSchedule);
+      } catch (error) {
+        console.error("Error fetching availability slots:", error);
+      }
+    };
+
+    fetchAvailability();
+  }, []);
+
+  const convertToLocalTime = (schedule) => {
+    const convertedSchedule = {};
+
+    for (const [day, slots] of Object.entries(schedule)) {
+      convertedSchedule[day] = slots.map(slot => {
+        if (typeof slot === "string") {
+          return new Date(slot).toLocaleString();
+        } else if (typeof slot === "object" && slot.start && slot.end) {
+          return {
+            start: new Date(slot.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            end: new Date(slot.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+        }
+        return slot;
+      });
+    }
+
+    return convertedSchedule;
+  };
 
   const [currentDay, setCurrentDay] = useState("");
   const [tempTimes, setTempTimes] = useState([]);
-  const [duration, setDuration] = useState(15); // Default duration: 15 minutes
+  const [duration, setDuration] = useState(30);
 
   const handleAddTimeSlot = () => {
     setTempTimes([...tempTimes, { start: "", end: "" }]);
@@ -193,74 +247,45 @@ const WeekSchedule = () => {
   };
 
   const handleRemoveTimeSlot = (index) => {
-    const updatedTimes = tempTimes.filter((_, i) => i !== index);
-    setTempTimes(updatedTimes);
+    setTempTimes(tempTimes.filter((_, i) => i !== index));
   };
 
   const handleSaveAvailability = async (day) => {
-    // Check for valid time range
-    if (
-      tempTimes.some(
-        ({ start, end }) =>
-          new Date(`1970-01-01T${start}:00`) >= new Date(`1970-01-01T${end}:00`)
-      )
-    ) {
+    if (tempTimes.some(({ start, end }) => new Date(`1970-01-01T${start}:00`) >= new Date(`1970-01-01T${end}:00`))) {
       alert("Invalid time slots: start time must be earlier than end time");
       return;
     }
 
-    // Generate time slots from the selected range
     const generatedSlots = tempTimes.flatMap(({ start, end }) => {
       const slots = [];
-      const now = new Date(); // Get today's date in local timezone
-      const current = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        ...start.split(":").map(Number)
-      );
-      const endTime = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        ...end.split(":").map(Number)
-      );
+      const now = new Date();
+      const current = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...start.split(":").map(Number));
+      const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...end.split(":").map(Number));
       const durationMs = duration * 60 * 1000;
 
       while (current < endTime) {
         const next = new Date(current.getTime() + durationMs);
         if (next > endTime) break;
         slots.push({
-          start: current.toISOString(), // Full date-time string in ISO format
+          start: current.toISOString(),
           end: next.toISOString(),
         });
-        current.setTime(next.getTime()); // Move to the next slot
+        current.setTime(next.getTime());
       }
       return slots;
     });
 
-    // Save the generated slots to state for the backend
     setAvailability((prev) => ({
       ...prev,
-      [day]: generatedSlots,
+      [day]: convertToLocalTime({ [day]: generatedSlots })[day],
     }));
 
     try {
-      // Send the generated slots to the backend (example POST request)
-      const response = await axios.post(
-        "http://localhost:4000/appointment/availability",
-        {
-          doctorId: localStorage.getItem("userId"),
-          availability: {
-            [day]: generatedSlots,
-          },
-        }
-      );
-      console.log("Generated slots saved successfully:", response.data);
-      console.log({
-        day,
-        slots: generatedSlots,
+      await axios.post("http://localhost:4000/appointment/availability", {
+        doctorId: localStorage.getItem("userId"),
+        availability: { [day]: generatedSlots },
       });
+      console.log("Generated slots saved successfully:", generatedSlots);
     } catch (error) {
       console.error("Error saving generated slots:", error);
     }
@@ -268,11 +293,8 @@ const WeekSchedule = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-1">
-      {Object.entries(availability).map(([day, times], index) => (
-        <div
-          key={index}
-          className="bg-blue-100 p-4 rounded-lg shadow-md border border-blue-300"
-        >
+      {days.map((day, index) => (
+        <div key={index} className="bg-blue-100 p-4 rounded-lg shadow-md border border-blue-300">
           <h2 className="text-lg font-semibold mb-2 flex justify-between items-center">
             <span>{day}</span>
             <Dialog>
@@ -281,24 +303,15 @@ const WeekSchedule = () => {
                   className="w-4 h-4 ml-2 inline-block cursor-pointer"
                   onClick={() => {
                     setCurrentDay(day);
-                    setTempTimes([...availability[day]]);
+                    setTempTimes(availability[day]?.length ? [...availability[day]] : []);
                   }}
                 />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <h3 className="text-xl font-semibold mb-1">{`Set your availability for ${day}`}</h3>
-                <div>
-                  <input
-                    type="number"
-                    placeholder="Enter each slots time in minutes"
-                    className="border rounded-md px-4 py-2 w-full mb-4"
-                    onChange={(e) => setDuration(parseInt(e.target.value, 10))}
-                    defaultValue={duration}
-                  />
-                </div>
                 <div className="space-y-4">
                   {tempTimes.length === 0 && (
-                    <p className="font-semibold text-gray-400 text-center text-2xl">No availability set</p>
+                    <p className="text-gray-500 text-center py-4">No time slots added yet</p>
                   )}
                   {tempTimes.map((slot, index) => (
                     <div key={index} className="flex items-center gap-2">
@@ -315,26 +328,17 @@ const WeekSchedule = () => {
                         onChange={(e) => handleTimeChange(index, "end", e.target.value)}
                         className="border rounded p-1"
                       />
-                      <button
-                        onClick={() => handleRemoveTimeSlot(index)}
-                        className="text-red-500 text-sm"
-                      >
+                      <button onClick={() => handleRemoveTimeSlot(index)} className="text-red-500 text-sm">
                         Remove
                       </button>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 flex items-center justify-between">
-                  <button
-                    onClick={handleAddTimeSlot}
-                    className="bg-blue-500 text-white py-1 px-3 rounded"
-                  >
+                  <button onClick={handleAddTimeSlot} className="bg-blue-500 text-white py-1 px-3 rounded">
                     Add Time Slot
                   </button>
-                  <button
-                    onClick={() => handleSaveAvailability(currentDay)}
-                    className="bg-green-500 text-white py-1 px-3 rounded"
-                  >
+                  <button onClick={() => handleSaveAvailability(currentDay)} className="bg-green-500 text-white py-1 px-3 rounded">
                     Save Changes
                   </button>
                 </div>
@@ -342,11 +346,14 @@ const WeekSchedule = () => {
             </Dialog>
           </h2>
           <div className="text-sm space-y-1">
-            {times.length === 0 ? (
-              <p>No availability set</p>
+            {(!availability[day] || availability[day].length === 0) ? (
+              <p className="text-gray-500">No slots available</p>
             ) : (
-              // Show only the original selected range
-              <p>{times[0].start } - {times[0].end}</p>
+              availability[day].map((slot, index) => (
+                <p key={index} className="text-gray-700">
+                  {slot.start} - {slot.end}
+                </p>
+              ))
             )}
           </div>
         </div>
