@@ -62,40 +62,27 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
 
       // Step 2: Get available slots for the specified day
       const dayOfWeek = getWeekdayName(appointmentDate); // Get the correct day name
-      const availableSlots: string[] = doctor.availability[dayOfWeek] || [];
+      const availableSlots: any[] = doctor.availability[dayOfWeek] || [];
       const bookedSlots = doctor.appointments.map(
-        (app: any) => app.appointmentDate
+        (app: any) => new Date(app.appointmentDate)
       );
 
-      // Step 3: Filter out booked slots
-      const freeSlots = availableSlots.filter((slot) => {
-        const slotStart = normalizeToSameDay(parseISO(slot), appointmentDate);
-        const slotEnd = addMinutes(slotStart, 29); // 30-minute slot duration
+      // Filter out booked slots
+      const freeSlots = availableSlots.filter(({ start, end }) => {
+        const slotStart = new Date(start);
+        const slotEnd = new Date(end);
 
-        // Check if the slot overlaps with any booked appointment based on time
-        const isOverlapping = bookedSlots.some((booked: any) => {
-          const bookedTime = normalizeToSameDay(
-            new Date(booked),
-            appointmentDate
-          );
-          return isWithinInterval(bookedTime, {
-            start: slotStart,
-            end: slotEnd,
-          });
-        });
+        // Check if slot is already booked
+        const isOverlapping = bookedSlots.some((booked: any) =>
+          isWithinInterval(booked, { start: slotStart, end: slotEnd })
+        );
 
-        // Only return slots that are not overlapping in time
-        return !isOverlapping && isSameDay(slotStart, appointmentDate);
+        return isSameDay(slotStart, appointmentDate) && !isOverlapping;
       });
-
       // Step 4: Return the available slots
-      res
-        .status(200)
-        .json({
-          availableSlots: freeSlots.map((time) =>
-            normalizeToSameDay(new Date(time), appointmentDate)
-          ),
-        });
+      res.status(200).json({
+        availableSlots: freeSlots,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal Server Error" });

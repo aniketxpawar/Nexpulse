@@ -60,7 +60,7 @@ const updateDoctorAvailability = async (
 ) => {
   try {
     const doctor = await prisma.doctor.findUnique({
-      where: { id: doctorId },
+      where: { userId: doctorId },
       select: { availability: true },
     });
 
@@ -107,7 +107,7 @@ const createAppointmentRecord = async (
     data: {
       doctorId: doctorId,
       patientId: patientId,
-      appointmentDate: new Date(appointmentDate),
+      appointmentDate: new Date(appointmentDate).toISOString(),
       healthConcern: healthConcern,
       type: type,
       link: link,
