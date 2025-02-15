@@ -56,10 +56,25 @@ const doctorProfile = () => {
   const [doctor, setDoctor] = useState(null);
 
   const fetchAvailableSlots = async () => {
-    const res = await axios.post('http://localhost:4000/appointment/get-slots', {
-      doctorId: id,
-      date: date
-    })
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const localDay = days[new Date(date).getDay()];
+
+    const res = await axios.post(
+      "http://localhost:4000/appointment/get-slots",
+      {
+        doctorId: id,
+        date: date,
+        day: localDay,
+      }
+    );
     console.log(res);
     setTimeSlots(res.data.availableSlots)
     setLoading(false)

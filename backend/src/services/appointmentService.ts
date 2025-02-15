@@ -82,7 +82,7 @@ const updateDoctorAvailability = async (
 
     // Update the availability field in the database
     const updatedDoctor = await prisma.doctor.update({
-      where: { id: doctorId },
+      where: { userId: doctorId },
       data: {
         availability: mergedAvailability, // Ensure correct Prisma JSON type
       },

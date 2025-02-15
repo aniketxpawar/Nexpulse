@@ -32,7 +32,7 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
   };
   
   const getAvailableSlots = async (req: Request, res: Response) => {
-    const { doctorId, date } = req.body;
+    const { doctorId, date, day } = req.body;
 
     // Validate input parameters
     if (!doctorId) {
@@ -61,8 +61,8 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
       }
 
       // Step 2: Get available slots for the specified day
-      const dayOfWeek = getWeekdayName(appointmentDate); // Get the correct day name
-      const availableSlots: any[] = doctor.availability[dayOfWeek] || [];
+      // const dayOfWeek = getWeekdayName(appointmentDate); // Get the correct day name
+      const availableSlots: any[] = doctor.availability[day] || [];
       const bookedSlots = doctor.appointments.map(
         (app: any) => new Date(app.appointmentDate)
       );
@@ -77,7 +77,7 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
           isWithinInterval(booked, { start: slotStart, end: slotEnd })
         );
 
-        return isSameDay(slotStart, appointmentDate) && !isOverlapping;
+        return !isOverlapping;
       });
       // Step 4: Return the available slots
       res.status(200).json({
