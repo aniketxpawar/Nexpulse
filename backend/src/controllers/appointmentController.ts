@@ -212,6 +212,39 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
     }
   };
 
+  const getPastAppointments = async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const { date } = req.body;
+
+      if (!userId || !date) {
+        return res.status(400).json({ message: "Missing userId or date" });
+      }
+
+      const parsedDate = new Date(date as string);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+
+      const user = await userService.getUserById(Number(userId));
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const appointments = await appointmentService.getPastAppointmentsByRole({
+        doctorId: user.doctor?.id,
+        patientId: user.patient?.id,
+        date: parsedDate,
+      });
+
+      return res.status(200).json({ appointments });
+    } catch (error) {
+      console.error("Error fetching past appointments:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
   const getTodaysAppointment = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
@@ -293,6 +326,7 @@ const normalizeToSameDay = (time: Date, date: Date): Date => {
     setAvailability,
     createAppointment,
     getAppointments,
+    getPastAppointments,
     getTodaysAppointment,
     // updateAppointment,
     getAvailableSlots,
