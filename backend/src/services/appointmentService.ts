@@ -159,7 +159,7 @@ const getPastAppointmentsByRole = async ({
         doctorId,
         appointmentDate: { lt: date },
       },
-      include: { patient: { include: { user: true } } },
+      include: { patient: { include: { user: true } },medicalRecords: true, },
       orderBy: { appointmentDate: "desc" },
     });
   } else if (patientId) {
@@ -168,7 +168,7 @@ const getPastAppointmentsByRole = async ({
         patientId,
         appointmentDate: { lt: date },
       },
-      include: { doctor: { include: { user: true } } },
+      include: { doctor: { include: { user: true } },medicalRecords: true, },
       orderBy: { appointmentDate: "desc" },
     });
   }
