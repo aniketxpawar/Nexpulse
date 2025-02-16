@@ -36,6 +36,17 @@ export const getValueByKey = async (
     }
   };
 
+  export const deleteKey = async (key: string): Promise<number | null> => {
+    try {
+      // Set the key-value pair with expiry
+      const result = await redis.del(key);
+      return result; // 'OK' if successful
+    } catch (error) {
+      console.error("Error setting key-value pair in Redis:", error);
+      throw error;
+    }
+  };
+
 export const smembersWithKey = async (key: string) => {
     return await redis.smembers(key)
 }
