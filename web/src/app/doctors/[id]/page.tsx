@@ -140,7 +140,7 @@ const doctorProfile = () => {
         healthConcern: healthConcern
       });
       console.log(res);
-      router.push('/my-appointments');
+      router.push("/my-appointments");
     } catch (err) {
       console.error(err);
     } finally {

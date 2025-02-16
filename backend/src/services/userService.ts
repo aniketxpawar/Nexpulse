@@ -106,7 +106,7 @@ const getDoctorsRecord = async (doctorId: number): Promise<Doctor | null> => {
 
 const getPatientRecord = async (patientId: number): Promise<Patient | null> => {
   return await prisma.patient.findUnique({
-    where: { id: patientId },
+    where: { userId: patientId },
     include: { user: true }, // Include patient details
   });
 }
