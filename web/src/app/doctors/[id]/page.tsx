@@ -128,14 +128,14 @@ const doctorProfile = () => {
       return;
     }
     try {
-      const localAppointmentDate = createCombinedDate({ date, selectedTimeSlot });
-      const utcAppointmentDate = convertLocalToUTC(localAppointmentDate);
+      // const localAppointmentDate = createCombinedDate({ date, selectedTimeSlot });
+      // const utcAppointmentDate = convertLocalToUTC(localAppointmentDate);
   
       const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
         userId: localStorage.getItem('userId'),
         doctorId: id,
         patientId: localStorage.getItem('userId'),
-        appointmentDate: utcAppointmentDate, // Send UTC time to backend
+        appointmentDate: date, // Send UTC time to backend
         type: type,
         healthConcern: healthConcern
       });
