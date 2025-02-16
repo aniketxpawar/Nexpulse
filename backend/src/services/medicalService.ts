@@ -18,6 +18,31 @@ const createMedicalRecord = async (doctorId: number, patientId: number, appointm
       });
 }
 
+const getAllMedicalRecordsForPatient = async (patientId: number) => {
+  return prisma.medicalRecord.findMany({
+    where: { patientId },
+    include: { doctor: { include: { user: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+// Function to get medical records prescribed by a specific doctor
+const getMedicalRecordsByDoctor = async (
+  patientId: number,
+  doctorId: number
+) => {
+  return prisma.medicalRecord.findMany({
+    where: {
+      patientId,
+      doctorId,
+    },
+    include: { doctor: { include: { user: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 export const medicalService = {
-    createMedicalRecord
-}
+  createMedicalRecord,
+  getAllMedicalRecordsForPatient,
+  getMedicalRecordsByDoctor,
+};
