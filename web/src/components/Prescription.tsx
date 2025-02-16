@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 // }
 
 
-const Prescription = ({ prescriptionDetails, PatientName, DoctorName}) => {
+const Prescription = ({ date, prescriptionDetails, PatientName, DoctorName}) => {
   const { doctorId, patientId, healthConcern, prescription, createdAt, image } = prescriptionDetails;
 
   // Parse the prescription JSON string
@@ -36,7 +36,7 @@ const Prescription = ({ prescriptionDetails, PatientName, DoctorName}) => {
           </div>
           <div>
             <p className="text-gray-500 font-medium">Date:</p>
-            <p className="text-lg">{new Date(createdAt).toLocaleDateString()}</p>
+            <p className="text-lg">{new Date(date).toLocaleDateString()}</p>
           </div>
           <div>
             <p className="text-gray-500 font-medium">Health Concern:</p>

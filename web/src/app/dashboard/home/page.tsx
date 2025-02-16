@@ -259,7 +259,7 @@ function PastPatients({doctorName}) {
                     </DialogTrigger>
                     <DialogContent className="mx-auto p-6 overflow-y-scroll h-[90vh]">
                       
-                      <Prescription prescriptionDetails={appointment.medicalRecords[0]} PatientName={appointment.patient.user.fullName} DoctorName={doctorName}/>
+                      <Prescription date={appointment.appointmentDate} prescriptionDetails={appointment.medicalRecords[0]} PatientName={appointment.patient.user.fullName} DoctorName={doctorName}/>
                       {/* <DialogHeader>
                         <DialogTitle>Are you absolutely sure?</DialogTitle>
                         <DialogDescription>

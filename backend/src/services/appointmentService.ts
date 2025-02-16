@@ -168,7 +168,7 @@ const getPastAppointmentsByRole = async ({
         patientId,
         appointmentDate: { lt: date },
       },
-      include: { doctor: { include: { user: true } },medicalRecords: true, },
+      include: { doctor: { include: { user: true } },medicalRecords: true},
       orderBy: { appointmentDate: "desc" },
     });
   }
