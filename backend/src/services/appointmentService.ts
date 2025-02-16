@@ -144,6 +144,37 @@ const getAppointments = async (userId: number, role: Role) => {
   });
 };
 
+const getPastAppointmentsByRole = async ({
+  doctorId,
+  patientId,
+  date,
+}: {
+  doctorId?: number;
+  patientId?: number;
+  date: Date;
+}) => {
+  if (doctorId) {
+    return prisma.appointment.findMany({
+      where: {
+        doctorId,
+        appointmentDate: { lt: date },
+      },
+      include: { patient: { include: { user: true } } },
+      orderBy: { appointmentDate: "desc" },
+    });
+  } else if (patientId) {
+    return prisma.appointment.findMany({
+      where: {
+        patientId,
+        appointmentDate: { lt: date },
+      },
+      include: { doctor: { include: { user: true } } },
+      orderBy: { appointmentDate: "desc" },
+    });
+  }
+  return [];
+};
+
 const getTodaysAppointment = async (
   doctorId: number,
   startOfDay: Date,
@@ -187,6 +218,7 @@ export const appointmentService = {
   updateDoctorAvailability,
   createAppointmentRecord,
   getAppointments,
+  getPastAppointmentsByRole,
   getTodaysAppointment,
   findAppointment,
   updateAppointmentStatus,
