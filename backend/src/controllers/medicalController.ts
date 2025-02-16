@@ -3,6 +3,7 @@ import { convertBase64ToUrl } from "../services/cloudinary";
 import { medicalService } from "../services/medicalService";
 import { userService } from "../services/userService";
 import {
+  deleteKey,
   getValueByKey,
   setKeyValueWithExpiry,
 } from "../services/redisServices";
@@ -82,7 +83,7 @@ const getMedicalRecords = async (req: Request, res: Response) => {
       Number(doctor.id)
     );
 
-    return res.json(medicalRecords);
+    return res.json({ medicalRecords, hasAccess: !!accessDoctorId });
   } catch (error) {
     console.error("Error fetching medical records:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -117,8 +118,32 @@ const requestAccess = async (req: Request, res: Response) => {
   res.json({ message: "Please check your email" });
 };
 
+const validateAccess = async (req: Request, res: Response) => {
+  const { key, time } = req.body;
+  let expiry = 60 * 60 * 24;
+  if (time == "week") expiry *= 7;
+  else if (time == "month") expiry *= 30;
+  else if (time == "year") expiry *= 365;
+
+  const value = await getValueByKey(key);
+  if (!value) res.status(400).json({ message: "Invalid Access" });
+  // @ts-ignore
+  const [patientId, doctorId] = value?.split("-");
+
+  const success = await setKeyValueWithExpiry(
+    `access:${patientId}`,
+    doctorId,
+    expiry
+  );
+  await deleteKey(key);
+
+  if (success) return res.json({ message: "Access Granted" });
+  res.json({ message: "Failed to Grant Access" });
+};
+
 export const medicalController = {
   createRecord,
   getMedicalRecords,
   requestAccess,
+  validateAccess,
 };
