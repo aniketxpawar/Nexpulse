@@ -71,7 +71,7 @@ const MeetingTypeList = () => {
         img="/icons/add-meeting.svg"
         title="New Meeting"
         description="Start an instant meeting"
-        className="bg-orange-1"
+        className="bg-blue-500"
         handleClick={() => setMeetingState('isInstantMeeting')}
       />
       <HomeCard

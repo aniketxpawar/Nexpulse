@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 const redis = new Redis({
   host: process.env.REDIS_HOST,  // replace with your Redis host
   port: Number(process.env.REDIS_PORT),         // replace with your Redis port
-  password: process.env.REDIS_PASSWORD,       // optional, if your Redis requires a password
+  password: process.env.REDIS_PASSWORD || undefined,       // optional, if your Redis requires a password
 });
 
 // Function to add a key-value pair with an expiry
@@ -36,8 +36,39 @@ export const getValueByKey = async (
     }
   };
 
+  export const deleteKey = async (key: string): Promise<number | null> => {
+    try {
+      // Set the key-value pair with expiry
+      const result = await redis.del(key);
+      return result; // 'OK' if successful
+    } catch (error) {
+      console.error("Error setting key-value pair in Redis:", error);
+      throw error;
+    }
+  };
+
 export const smembersWithKey = async (key: string) => {
     return await redis.smembers(key)
+}
+
+export const findSpecialistsByTags = async (tags: string[]): Promise<string[]> => {
+  const matchingSpecialists = new Set<string>();
+
+  // Iterate through each tag and find matching specialists
+  for (const tag of tags) {
+    
+    // Find all specialists that have this tag
+    const specialistsForTag = await redis.keys(`specialist:*`);
+    
+    for (const specialistKey of specialistsForTag) {
+      const hasTag = await redis.sismember(specialistKey, tag.toLowerCase());
+      if (hasTag) {
+        matchingSpecialists.add(specialistKey.split(':')[1]); // Extract specialist name
+      }
+    }
+  }
+
+  return Array.from(matchingSpecialists);
 }
 
 // Function to close the Redis connection (optional)

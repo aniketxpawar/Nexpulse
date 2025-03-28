@@ -1,9 +1,8 @@
 #calendar {
     padding: 16px;
     background-color: #f7f9fc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
     border-radius: 8px;
-    height: calc(100vh - 32px);
     /* Give some padding from top/bottom */
 }
 
@@ -18,7 +17,7 @@
 }
 
 .tui-full-calendar-weekday-grid-line {
-    background-color: #fff;
+    background-color: #ffffff;
 }
 
 .tui-full-calendar-weekday-schedule-block {

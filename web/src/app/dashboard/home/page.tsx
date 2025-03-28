@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import axios from "axios"
 import { cardio } from 'ldrs'
 import { doctorPic } from "@/assets/defaultProfiles"
+import MyTUICalendar from "@/components/common/calendar"
 cardio.register()
 
 
@@ -41,16 +42,51 @@ export default function DashboardPage() {
 
   const [upcomingAppointments, setUpcomingAppointments] = useState([])
   const [loading, setLoading] = useState(true)
-  const schedule = [
-    {
-      id: 1,
-      title: "Appointment with John Doe",
-      body: "link: https://meet.google.com/xyz",
-      category: "time",
-      start: new Date().toISOString(),
-      end: currentDate.toISOString(),
-    }
-  ]
+  // const schedule = [
+  //   {
+  //     id: 1,
+  //     title: "Appointment with John Doe",
+  //     body: "link: https://meet.google.com/xyz",
+  //     category: "time",
+  //     start: new Date().toISOString(),
+  //     end: currentDate.toISOString(),
+  //   }
+  // ]
+  const [schedules, setSchedules] = useState([])
+  function addMinutesAndFormatUTC(utcDateString: string, minutes: number): string {
+    const date = new Date(utcDateString); // Convert UTC string to Date object
+
+    // Add the specified minutes
+    date.setUTCMinutes(date.getUTCMinutes() + minutes);
+
+    // Format the date components to ensure they are two digits
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutesFormatted = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutesFormatted}:${seconds}`;
+  }
+
+
+  useEffect(() => {
+    const newSchedule = upcomingAppointments.map((appointment, index) => {
+      return {
+        id: appointment.id,
+        calendarId: index + 1,
+        title: `Appointment with ${appointment.patient.user.fullName}`,
+        body: `<a class='bg-blue-700 p-2 rounded-md text-white' href='${appointment.link}' target='_blank'>Join now</a>`,
+        category: "time",
+        start: addMinutesAndFormatUTC(appointment.appointmentDate, 0),
+        end: addMinutesAndFormatUTC(appointment.appointmentDate, 30),
+      };
+    });
+    console.log("new", newSchedule);
+    setSchedules(newSchedule)
+  }, [upcomingAppointments])
+
+
   return (
     <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto"> {/* Adjusted for dynamic height */}
       {
@@ -65,13 +101,12 @@ export default function DashboardPage() {
           <div className="p-2 md:p-10 rounded-2xl border border-neutral-200 bg-white flex flex-col lg:flex-row w-full gap-4">
             <div className="w-full lg:w-3/4">
               <h1 className="font-bold mb-2 text-3xl">Welcome Back Dr. {doctor?.user.fullName}!</h1>
-              <GreetCard doctor={doctor} upcoming={upcomingAppointments?.length}/>
-              <PatientList upcomingAppointments={upcomingAppointments}/>
+              <GreetCard doctor={doctor} upcoming={upcomingAppointments?.length} />
+              <PatientList upcomingAppointments={upcomingAppointments} />
             </div>
-            <div className="w-1/3 invisible lg:visible"> {/* Removed fixed height */}
-              <h1 className="text-2xl font-bold mb-3">Your today's schedule</h1>
-              <div className="p-5 border rounded-xl">
-                <Calendar prop="day" schedule={schedule} />
+            <div className="w-1/3 invisible lg:visible">
+              <div className="p-5 border rounded-xl shadow-lg">
+                <PastPatients />
               </div>
             </div>
           </div>}
@@ -82,8 +117,8 @@ export default function DashboardPage() {
 function GreetCard({ doctor, upcoming }: { doctor: any; upcoming: number }) {
   console.log(doctor);
   console.log(upcoming);
-  
-  
+
+
   return <div className="bg-blue-500 mb-5 relative rounded-xl h-[35vh] px-7 p-4 text-white shadow-lg flex items-center justify-between">
     <div className="flex flex-col justify-between gap-7">
 
@@ -106,13 +141,31 @@ function GreetCard({ doctor, upcoming }: { doctor: any; upcoming: number }) {
       </div>
     </div>
     <img className="h-64 w-64 object-cover rounded-xl" src={doctor?.user?.profilePic ? doctor?.user?.profilePic : doctorPic} alt="" /> {/* Corrected to vh */}
-    
+
   </div>
 }
 
-function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
+function PatientList({ upcomingAppointments }: { upcomingAppointments: any }) {
   console.log(upcomingAppointments);
-  
+
+  function formatDateTime(dateString: Date) {
+    const date = new Date(dateString);
+
+    // Options to format the date as "Mon Oct 28 2024, 7:00 PM"
+    const options = {
+      weekday: "short", // "Mon"
+      year: "numeric", // "2024"
+      month: "short", // "Oct"
+      day: "numeric", // "28"
+      hour: "numeric", // "7"
+      minute: "numeric", // "00"
+      hour12: true, // "PM"
+      timeZone: "UTC", // Keep it in UTC
+    };
+
+    // Format the date using the options
+    return date.toLocaleString("en-US", options);
+  }
   return <div className="bg-white rounded-xl p-4 shadow-lg border">
     <h1 className="font-bold text-2xl pb-4">Upcoming Appointments</h1>
     <div className="grid grid-cols-1 gap-4 h-[60svh] overflow-y-scroll">
@@ -123,7 +176,7 @@ function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
             <div className='w-full flex justify-between items-center'>
               <div>
                 <h1 className='text-xl font-bold'>{appointment.patient.user.fullName}</h1>
-                <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {appointment.appointmentDate}</h2>
+                <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {formatDateTime(appointment.appointmentDate)}</h2>
                 <h2>{appointment.type == 'online' ?
                   <span className='flex items-center gap-2'><RiRadioButtonLine /> Online Appointment</span> :
                   <span className='flex items-center gap-2'><MdPeople /> Clinic Appointment</span>}</h2>
@@ -149,12 +202,68 @@ function PatientList({upcomingAppointments}: {upcomingAppointments: any}) {
   </div>
 }
 
-function PatientCard() {
-  return <div className="bg-white rounded-xl p-4 border shadow-sm">
-    <h1 className="font-bold text-xl">Patient Name</h1>
-    <p className="text-sm">Age: 25</p>
-    <p className="text-sm">
-      <span className="font-bold">Last Visit:</span> 12th March 2022
-    </p>
-  </div>
+
+function PastPatients() {
+  const pastPatients = [
+    {
+      id: 1,
+      name: "John Doe",
+      date: "12th Oct 2021",
+      time: "10:00 AM",
+      healthConcern: "Fever, Cold, Cough",
+      type: "Online"
+    },
+    {
+      id: 2,
+      name: "Jane Doe",
+      date: "12th Oct 2021",
+      time: "10:00 AM",
+      healthConcern: "Fever, Cold, Cough",
+      type: "Online"
+    },
+    {
+      id: 3,
+      name: "John Doe",
+      date: "12th Oct 2021",
+      time: "10:00 AM",
+      healthConcern: "Fever, Cold, Cough",
+      type: "Online"
+    },
+    {
+      id: 4,
+      name: "Jane Doe",
+      date: "12th Oct 2021",
+      time: "10:00 AM",
+      healthConcern: "Fever, Cold, Cough",
+      type: "Online"
+    }
+  ]
+  return (
+    <div className="">
+      <h1 className="font-bold text-2xl pb-4">Past Appointments</h1>
+      <div className="grid grid-cols-1 gap-4 h-[102svh] overflow-y-scroll">
+        {
+          pastPatients.map((patient) => (
+            <div key={patient.id} className='flex items-center gap-5 border-t pt-3'>
+              <img src={defaultProfilePic} alt={patient.name} className='w-32 h-32 object-contain rounded-lg' />
+              <div className='w-full flex flex-col justify-between items-center'>
+                <div className="w-full">
+                  <h1 className='text-xl font-bold'>{patient.name}</h1>
+                  <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {patient.date} {patient.time}</h2>
+                  <h2>{patient.type == 'online' ?
+                    <span className='flex items-center gap-2'><RiRadioButtonLine /> Online Appointment</span> :
+                    <span className='flex items-center gap-2'><MdPeople /> Clinic Appointment</span>}</h2>
+                  {/* <h2 className='mt-2'>Health Concerns: {patient.healthConcern}</h2> */}
+                </div>
+                <a href={`http://localhost:3000/add-prescription`} target="_blank" className='mt-3 text-white text-sm bg-blue-500 text-center justify-center px-4 rounded-lg py-2 flex gap-2 items-center w-full'>
+                  Add Prescription
+                  <FaExternalLinkAlt />
+                </a>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  )
 }

@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import express from "express";
+import multer from "multer";
 import { PrismaClient } from "@prisma/client";
 import morgan from "morgan";
 import cors from "cors";
@@ -7,16 +8,18 @@ import appRouter from "./routers";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import chatSocketHandler from "./socket/chatSocket";
-import { config } from 'dotenv';
+import { config } from "dotenv";
 config();
-
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(cors())
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 app.use(morgan("dev"));
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Automatically run migrations and generate Prisma client
 // try {

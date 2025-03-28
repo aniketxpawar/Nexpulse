@@ -46,6 +46,7 @@ model Doctor {
 
   user        User       @relation(fields: [userId], references: [id])
   appointments Appointment[]
+  medicalRecords    MedicalRecord[]
 }
 
 model Patient {
@@ -57,6 +58,7 @@ model Patient {
   
   user        User        @relation(fields: [userId], references: [id])
   appointments Appointment[]
+  medicalRecords MedicalRecord[]
 }
 
 model Appointment {
@@ -72,6 +74,23 @@ model Appointment {
 
   doctor  Doctor   @relation(fields: [doctorId], references: [id])
   patient Patient  @relation(fields: [patientId], references: [id])
+  medicalRecords    MedicalRecord[]
+}
+
+model MedicalRecord {
+  id            Int      @id @default(autoincrement())
+  patientId     Int
+  doctorId      Int
+  appointmentId Int
+  healthConcern String
+  prescription  Json
+  instructions  String?
+  image         String?
+  createdAt     DateTime @default(now())
+
+  patient      Patient      @relation(fields: [patientId], references: [id])
+  doctor       Doctor       @relation(fields: [doctorId], references: [id])
+  appointment  Appointment  @relation(fields: [appointmentId], references: [id])
 }
 
 model Chat {
