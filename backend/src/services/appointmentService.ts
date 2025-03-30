@@ -24,7 +24,7 @@ const findPatient = async (userId: number): Promise<Patient | null> => {
 
 const getDoctorWithDateAppointments = async (
   doctorId: number,
-  appointmentDate: Date
+  appointmentDate: number // epoch timestamp in seconds
 ): Promise<any> => {
   return await prisma.doctor.findUnique({
     where: { userId: doctorId },
@@ -33,13 +33,13 @@ const getDoctorWithDateAppointments = async (
       appointments: {
         where: {
           appointmentDate: {
-            gte: appointmentDate,
-            lt: new Date(appointmentDate.getTime() + 24 * 60 * 60 * 1000), // Filter appointments on the same day
+            gte: appointmentDate, // Start of the day (already in epoch)
+            lt: appointmentDate + 86400, // Add 24 hours (86400 seconds) to get next day's start
           },
-          status: "scheduled", // Consider only scheduled appointments
+          status: "scheduled", // Only consider scheduled appointments
         },
         select: {
-          appointmentDate: true,
+          appointmentDate: true, // Already in epoch, no conversion needed
         },
       },
     },
@@ -98,7 +98,7 @@ const updateDoctorAvailability = async (
 const createAppointmentRecord = async (
   doctorId: number,
   patientId: number,
-  appointmentDate: Date,
+  appointmentDate: number,
   healthConcern: string | null,
   type: AppointmentType,
   link: string | null
@@ -107,7 +107,7 @@ const createAppointmentRecord = async (
     data: {
       doctorId: doctorId,
       patientId: patientId,
-      appointmentDate: new Date(appointmentDate).toISOString(),
+      appointmentDate: appointmentDate,
       healthConcern: healthConcern,
       type: type,
       link: link,
@@ -151,7 +151,7 @@ const getPastAppointmentsByRole = async ({
 }: {
   doctorId?: number;
   patientId?: number;
-  date: Date;
+  date: number;
 }) => {
   if (doctorId) {
     return prisma.appointment.findMany({
@@ -159,7 +159,7 @@ const getPastAppointmentsByRole = async ({
         doctorId,
         appointmentDate: { lt: date },
       },
-      include: { patient: { include: { user: true } },medicalRecords: true, },
+      include: { patient: { include: { user: true } }, medicalRecords: true },
       orderBy: { appointmentDate: "desc" },
     });
   } else if (patientId) {
@@ -168,7 +168,7 @@ const getPastAppointmentsByRole = async ({
         patientId,
         appointmentDate: { lt: date },
       },
-      include: { doctor: { include: { user: true } },medicalRecords: true},
+      include: { doctor: { include: { user: true } }, medicalRecords: true },
       orderBy: { appointmentDate: "desc" },
     });
   }
@@ -177,8 +177,8 @@ const getPastAppointmentsByRole = async ({
 
 const getTodaysAppointment = async (
   doctorId: number,
-  startOfDay: Date,
-  endOfDay: Date
+  startOfDay: number,
+  endOfDay: number
 ) => {
   return await prisma.appointment.findMany({
     where: {

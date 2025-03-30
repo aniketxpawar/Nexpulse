@@ -65,7 +65,7 @@ model Appointment {
   id               Int      @id @default(autoincrement())
   doctorId         Int
   patientId        Int
-  appointmentDate  DateTime
+  appointmentDate  Int
   healthConcern    String?  
   link             String?
   status           AppointmentStatus

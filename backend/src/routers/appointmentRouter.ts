@@ -10,7 +10,10 @@ router.post(
   "/getPastAppointments/:userId",
   appointmentController.getPastAppointments
 );
-router.get('/getTodaysAppointments/:userId', appointmentController.getTodaysAppointment);
+router.post(
+  "/getTodaysAppointments/:userId",
+  appointmentController.getTodaysAppointment
+);
 router.post("/availability", appointmentController.setAvailability);
 // router.patch('/updateAppointment/:id', appointmentController.updateAppointment);
 

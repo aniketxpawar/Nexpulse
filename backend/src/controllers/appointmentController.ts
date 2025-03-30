@@ -1,326 +1,238 @@
 import { Request, Response } from "express";
 import { appointmentService } from "../services/appointmentService";
-import {
-    isSameDay,
-  parseISO,
-  isWithinInterval,
-  addMinutes,
-  setHours,
-  setMinutes,
-  setSeconds,
-  setMilliseconds,
-} from "date-fns";
+import { endOfDay, isWithinInterval } from "date-fns";
 import { userService } from "../services/userService";
 import { Appointment } from "@prisma/client";
+import moment from "moment";
 
-// Utility to get weekday name from a date
-const getWeekdayName = (date: Date): string => {
-  const weekdays = [
-    "Sunday",
+const getAvailableSlots = async (req: Request, res: Response) => {
+  const { doctorId, date, day } = req.body;
+
+  // Validate input parameters
+  if (!doctorId) {
+    return res.status(400).json({ error: "Doctor ID is required." });
+  }
+
+  try {
+    if (!date) {
+      const availability = await appointmentService.getDoctorAvailability(
+        Number(doctorId)
+      );
+      return res.status(200).send(availability);
+    }
+
+    // Ensure date is treated as an epoch timestamp (seconds)
+    const appointmentDate = moment.unix(date).startOf("day").unix();
+
+    // Step 1: Retrieve doctor's availability and appointments on that date
+    const doctor = await appointmentService.getDoctorWithDateAppointments(
+      Number(doctorId),
+      appointmentDate
+    );
+
+    if (!doctor) {
+      return res.status(404).json({ error: "Doctor not found" });
+    }
+
+    // Step 2: Get available slots for the specified day
+    const availableSlots: { start: number; end: number }[] =
+      doctor.availability[day] || [];
+    const bookedSlots: number[] = doctor.appointments.map(
+      (app: any) => app.appointmentDate // Already in epoch format
+    );
+
+    // Filter out booked slots
+    const freeSlots = availableSlots.filter(({ start, end }) => {
+      return !bookedSlots.some((booked) => booked >= start && booked < end);
+    });
+
+    // Step 4: Return the available slots
+    res.status(200).json({
+      availableSlots: freeSlots,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const setAvailability = async (req: Request, res: Response) => {
+  const { doctorId, availability } = req.body;
+  const allowedDays = [
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
     "Saturday",
+    "Sunday",
   ];
-  return weekdays[date.getDay()];
+
+  if (
+    !availability ||
+    typeof availability !== "object" ||
+    Object.keys(availability).some((day) => !allowedDays.includes(day))
+  ) {
+    return res.status(400).json({ error: "Invalid availability day" });
+  }
+
+  // Ensure availability data is properly formatted with epoch times
+  const updatedAvailability = Object.entries(availability).reduce(
+    (acc, [day, slots]) => {
+      if (!Array.isArray(slots)) return acc; // Ignore invalid entries
+
+      acc[day] = slots.map((slot) => {
+        return {
+          start: Number(slot.start), // Ensure it's a number (epoch time)
+          end: Number(slot.end), // Ensure it's a number (epoch time)
+        };
+      });
+
+      return acc;
+    },
+    {} as Record<string, { start: number; end: number }[]>
+  );
+
+  const updatedDoctor = await appointmentService.updateDoctorAvailability(
+    Number(doctorId),
+    updatedAvailability
+  );
+
+  if (!updatedDoctor) {
+    return res.status(400).json({ message: "Failed to set availability" });
+  }
+
+  res.status(200).json({ message: "Availability set successfully" });
 };
 
-const normalizeToSameDay = (time: Date, date: Date): Date => {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), time.getHours(), time.getMinutes(), time.getSeconds());
-  };
-  
-  const getAvailableSlots = async (req: Request, res: Response) => {
-    const { doctorId, date, day } = req.body;
+const createAppointment = async (req: Request, res: Response) => {
+  const { userId, doctorId, healthConcern, appointmentDate, type } = req.body;
 
-    // Validate input parameters
-    if (!doctorId) {
-      return res.status(400).json({ error: "Doctor ID are required." });
+  try {
+    const doctor = await appointmentService.findDoctor(Number(doctorId));
+
+    if (!doctor) {
+      return res.status(400).json({ error: "Doctor not found" });
     }
 
-    try {
-      if (!date) {
-        const availability = await appointmentService.getDoctorAvailability(
-          Number(doctorId)
-        );
-        return res.status(200).send(availability);
-      }
-      // Convert date to Date object and normalize to UTC
-      const appointmentDate = new Date(date);
-      appointmentDate.setUTCHours(0, 0, 0, 0); // Normalize to start of the day in UTC
+    const patient = await appointmentService.findPatient(Number(userId));
 
-      // Step 1: Retrieve doctor's availability and appointments on that date
-      const doctor = await appointmentService.getDoctorWithDateAppointments(
-        Number(doctorId),
-        appointmentDate
-      );
-
-      if (!doctor) {
-        return res.status(404).json({ error: "Doctor not found" });
-      }
-
-      // Step 2: Get available slots for the specified day
-      // const dayOfWeek = getWeekdayName(appointmentDate); // Get the correct day name
-      const availableSlots: any[] = doctor.availability[day] || [];
-      const bookedSlots = doctor.appointments.map(
-        (app: any) => new Date(app.appointmentDate)
-      );
-
-      // Filter out booked slots
-      const freeSlots = availableSlots.filter(({ start, end }) => {
-        const slotStart = new Date(start);
-        const slotEnd = new Date(end);
-
-        // Check if slot is already booked
-        const isOverlapping = bookedSlots.some((booked: any) =>
-          isWithinInterval(booked, { start: slotStart, end: slotEnd })
-        );
-
-        return !isOverlapping;
-      });
-      // Step 4: Return the available slots
-      res.status(200).json({
-        availableSlots: freeSlots,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  };
-
-  const generateMeetingCode = (): string => {
-    // Generate a random alphanumeric code of length 10
-    return Math.random().toString(36).substring(2, 12).toUpperCase();
-  };
-
-  const setAvailability = async (req: Request, res: Response) => {
-    const { doctorId, availability } = req.body;
-    const allowedDays = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-
-    if (
-      !availability ||
-      typeof availability !== "object" ||
-      Object.keys(availability).some((day) => !allowedDays.includes(day))
-    ) {
-      return res.status(400).json({ error: "Invalid availability day" });
+    if (!patient) {
+      return res.status(400).json({ error: "Patient not found" });
     }
 
-    const updatedAvailability = Object.entries(availability).reduce(
-      (acc, [day, slots]) => {
-        if (!Array.isArray(slots)) return acc; // Ignore invalid entries
+    // Step 2: Generate a unique meeting code
+    const meetingCode = crypto.randomUUID();
+    // TO DO: CHECK IF A CODE IS ALREADY USED OR NOT
+    const link =
+      type == "online" ? "http://localhost:8080/" + meetingCode : null;
 
-        acc[day] = slots.map((slot) => {
-          return {
-            start: new Date(slot.start).toISOString(), // Ensure UTC format
-            end: new Date(slot.end).toISOString(), // Ensure UTC format
-          };
-        });
-
-        return acc;
-      },
-      {} as Record<string, { start: string; end: string }[]>
+    // Step 3: Create appointment with meeting code
+    const appointment = await appointmentService.createAppointmentRecord(
+      doctor.id,
+      patient.id,
+      appointmentDate,
+      healthConcern,
+      type,
+      link
     );
 
-    const updatedDoctor = await appointmentService.updateDoctorAvailability(
-      Number(doctorId),
-      updatedAvailability
-    );
-    if (!updatedDoctor)
-      return res.status(400).json({ message: "Failed to set availability" });
-    res.status(200).json({ message: "Availability set successfully" });
-  };
+    res.status(201).json(appointment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error creating appointment" });
+  }
+};
 
-  const createAppointment = async (req: Request, res: Response) => {
-    const { userId, doctorId, healthConcern, appointmentDate, type } = req.body;
+const getAppointments = async (req: Request, res: Response) => {
+  const { userId } = req.params;
 
-    try {
-      const doctor = await appointmentService.findDoctor(Number(doctorId));
+  try {
+    // Fetch appointments for the given userId (as doctor or patient)
+    const user = await userService.getUserById(Number(userId));
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-      if (!doctor) {
-        return res.status(400).json({ error: "Doctor not found" });
-      }
+    let appointments: Appointment[] = [];
 
-      const patient = await appointmentService.findPatient(Number(userId));
-
-      if (!patient) {
-        return res.status(400).json({ error: "Patient not found" });
-      }
-
-      // Step 2: Generate a unique meeting code
-      const meetingCode = crypto.randomUUID();
-      // TO DO: CHECK IF A CODE IS ALREADY USED OR NOT
-      const link =
-        type == "online"
-          ? "http://localhost:5173/meeting/" + meetingCode
-          : null;
-
-      // Step 3: Create appointment with meeting code
-      const appointment = await appointmentService.createAppointmentRecord(
-        doctor.id,
-        patient.id,
-        appointmentDate,
-        healthConcern,
-        type,
-        link
-      );
-
-      res.status(201).json(appointment);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error creating appointment" });
+    if (user.role === "patient" && user.patient) {
+      // Check if the user has a patient record
+      appointments =
+        (await appointmentService.getAppointments(
+          user.patient.id,
+          "patient"
+        )) || [];
+    } else if (user.role === "doctor" && user.doctor) {
+      // Check if the user has a doctor record
+      appointments =
+        (await appointmentService.getAppointments(user.doctor.id, "doctor")) ||
+        [];
     }
-  };
 
-  const getAppointments = async (req: Request, res: Response) => {
+    res.status(200).json(appointments);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching appointments" });
+  }
+};
+
+const getPastAppointments = async (req: Request, res: Response) => {
+  try {
     const { userId } = req.params;
+    const { date } = req.body;
 
-    try {
-      // Fetch appointments for the given userId (as doctor or patient)
-      const user = await userService.getUserById(Number(userId));
-      if (!user) return res.status(404).json({ message: "User not found" });
-
-      let appointments: Appointment[] = [];
-
-      if (user.role === "patient" && user.patient) {
-        // Check if the user has a patient record
-        appointments =
-          (await appointmentService.getAppointments(
-            user.patient.id,
-            "patient"
-          )) || [];
-      } else if (user.role === "doctor" && user.doctor) {
-        // Check if the user has a doctor record
-        appointments =
-          (await appointmentService.getAppointments(
-            user.doctor.id,
-            "doctor"
-          )) || [];
-      }
-
-      res.status(200).json(appointments);
-    } catch (error) {
-      res.status(500).json({ error: "Error fetching appointments" });
+    if (!userId || !date) {
+      return res.status(400).json({ message: "Missing userId or date" });
     }
-  };
 
-  const getPastAppointments = async (req: Request, res: Response) => {
-    try {
-      const { userId } = req.params;
-      const { date } = req.body;
+    const user = await userService.getUserById(Number(userId));
 
-      if (!userId || !date) {
-        return res.status(400).json({ message: "Missing userId or date" });
-      }
-
-      const parsedDate = new Date(date as string);
-      if (isNaN(parsedDate.getTime())) {
-        return res.status(400).json({ message: "Invalid date format" });
-      }
-
-      const user = await userService.getUserById(Number(userId));
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const appointments = await appointmentService.getPastAppointmentsByRole({
-        doctorId: user.doctor?.id,
-        patientId: user.patient?.id,
-        date: parsedDate,
-      });
-
-      return res.status(200).json({ appointments });
-    } catch (error) {
-      console.error("Error fetching past appointments:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  };
 
-  const getTodaysAppointment = async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const appointments = await appointmentService.getPastAppointmentsByRole({
+      doctorId: user.doctor?.id,
+      patientId: user.patient?.id,
+      date: date,
+    });
 
-    try {
-      // Check if user is a doctor
-      const user = await userService.getUserById(Number(userId));
-      if (!user || user.role !== "doctor") {
-        return res
-          .status(403)
-          .json({ message: "User is not authorized to access this resource" });
-      }
+    return res.status(200).json({ appointments });
+  } catch (error) {
+    console.error("Error fetching past appointments:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
-      // Fetch today's date in a format compatible with your database
-      const today = new Date();
-      const startOfDay = new Date(
-        Date.UTC(
-          today.getUTCFullYear(),
-          today.getUTCMonth(),
-          today.getUTCDate(),
-          0,
-          0,
-          0
+const getTodaysAppointment = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { startOfDay } = req.body; // Received in epoch format (seconds)
+
+  try {
+    // Check if user is a doctor
+    const user = await userService.getUserById(Number(userId));
+    if (!user || user.role !== "doctor") {
+      return res
+        .status(403)
+        .json({ message: "User is not authorized to access this resource" });
+    }
+
+    // Calculate endOfDay in epoch format (add 86400 seconds = 24 hours)
+    const endOfDay = startOfDay + 86400;
+
+    // Retrieve today's appointments for the doctor
+    const appointments = user?.doctor?.id
+      ? await appointmentService.getTodaysAppointment(
+          user.doctor.id,
+          startOfDay,
+          endOfDay
         )
-      );
-      const endOfDay = new Date(
-        Date.UTC(
-          today.getUTCFullYear(),
-          today.getUTCMonth(),
-          today.getUTCDate(),
-          23,
-          59,
-          59,
-          999
-        )
-      );
+      : [];
 
-      // Retrieve today's appointments for the doctor
-      const appointments = user?.doctor?.id
-        ? await appointmentService.getTodaysAppointment(
-            user.doctor.id,
-            startOfDay,
-            endOfDay
-          )
-        : [];
-
-      res.status(200).json(appointments);
-    } catch (error) {
-      console.error("Error fetching today's appointments:", error);
-      res.status(500).json({ error: "Error fetching today's appointments" });
-    }
-  };
-
-  // const updateAppointment = async (req: Request, res: Response) => {
-  //     const { id } = req.params;
-  //     const { userId, status } = req.body;
-
-  //     try {
-  //         // Check if the user is the doctor for the appointment
-  //         const appointment = await appointmentService.findAppointment(id)
-
-  //         if (!appointment) {
-  //             return res.status(404).json({ error: 'Appointment not found' });
-  //         }
-
-  //         if (appointment.doctorId !== Number(userId)) {
-  //             return res.status(403).json({ error: 'Only the doctor can update the status' });
-  //         }
-
-  //         // Update appointment status
-  //         const updatedAppointment = await appointmentService.updateAppointmentStatus(id, status)
-
-  //         res.status(200).json(updatedAppointment);
-  //     } catch (error) {
-  //         res.status(500).json({ error: 'Error updating appointment status' });
-  //     }
-  // }
+    res.status(200).json(appointments);
+  } catch (error) {
+    console.error("Error fetching today's appointments:", error);
+    res.status(500).json({ error: "Error fetching today's appointments" });
+  }
+};
 
   export const appointmentController = {
     setAvailability,
