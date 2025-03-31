@@ -1,20 +1,19 @@
 "use client"
 import Calendar from "@/components/common/calendar"
-const defaultProfilePic = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.pngitem.com%2Fpimgs%2Fm%2F551-5510463_default-user-image-png-transparent-png.png&f=1&nofb=1&ipt=a1e0abf157ee5d0b0dad35a4ccc2ae43b90d9ee39fd38cc09f9e5a917c90eaad&ipo=images'
-const defaultDoctorPic = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn3.iconfinder.com%2Fdata%2Ficons%2Fmale-user-icons-2%2F500%2Fmuser-dr1-512.png&f=1&nofb=1&ipt=878bb4538e54a271464416c1b1c567df2f7338c4a0e060d628bea1a41aff23cc&ipo=images"
-import { RiRadioButtonLine } from "react-icons/ri"
-import { MdPeople } from "react-icons/md";
-import { IoCalendar } from "react-icons/io5";
-import { FaExternalLinkAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import axios from "axios"
 import { cardio } from 'ldrs'
+import moment from 'moment'; // Import moment
 import { doctorPic } from "@/assets/defaultProfiles"
 import MyTUICalendar from "@/components/common/calendar"
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2 } from "lucide-react";
+import { ExternalLinkIcon, Trash2 } from "lucide-react";
+import { RiRadioButtonLine } from "react-icons/ri"
+import { MdPeople } from "react-icons/md";
+import { IoCalendar } from "react-icons/io5";
+import { FaExternalLinkAlt } from "react-icons/fa";
 import {
   Dialog,
   DialogContent,
@@ -25,84 +24,109 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@radix-ui/react-dropdown-menu"
 import Prescription from "@/components/Prescription"
+
+const defaultProfilePic = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.pngitem.com%2Fpimgs%2Fm%2F551-5510463_default-user-image-png-transparent-png.png&f=1&nofb=1&ipt=a1e0abf157ee5d0b0dad35a4ccc2ae43b90d9ee39fd38cc09f9e5a917c90eaad&ipo=images'
+const defaultDoctorPic = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn3.iconfinder.com%2Fdata%2Ficons%2Fmale-user-icons-2%2F500%2Fmuser-dr1-512.png&f=1&nofb=1&ipt=878bb4538e54a271464416c1b1c567df2f7338c4a0e060d628bea1a41aff23cc&ipo=images"
+
 cardio.register()
-
-
 
 export default function DashboardPage() {
   const userId = (() => localStorage.getItem('userId'))()
-  const currentDate = new Date();
-  currentDate.setMinutes(currentDate.getMinutes() + 30);
-
+  
   const getDoctor = async () => {
     const res = await axios.post('http://localhost:4000/user/get-doctor', {
       doctorId: userId,
       userId: userId
     })
-    // console.log(res.data);
     setDoctor(res.data.doctor)
   }
+  
   const getAppointments = async () => {
     const res = await axios.get(`http://localhost:4000/appointment/getAppointments/${userId}`)
-    // console.log(res.data);
     setUpcomingAppointments(res.data)
     setLoading(false)
   }
+  
   const [doctor, setDoctor] = useState()
+  const [upcomingAppointments, setUpcomingAppointments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [schedules, setSchedules] = useState([])
+  
   useEffect(() => {
     getDoctor()
     getAppointments()
   }, [])
 
-  const [upcomingAppointments, setUpcomingAppointments] = useState([])
-  const [loading, setLoading] = useState(true)
-  // const schedule = [
-  //   {
-  //     id: 1,
-  //     title: "Appointment with John Doe",
-  //     body: "link: https://meet.google.com/xyz",
-  //     category: "time",
-  //     start: new Date().toISOString(),
-  //     end: currentDate.toISOString(),
-  //   }
-  // ]
-  const [schedules, setSchedules] = useState([])
-  function addMinutesAndFormatUTC(utcDateString: string, minutes: number): string {
-    const date = new Date(utcDateString); // Convert UTC string to Date object
-
-    // Add the specified minutes
-    date.setUTCMinutes(date.getUTCMinutes() + minutes);
-
-    // Format the date components to ensure they are two digits
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutesFormatted = String(date.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutesFormatted}:${seconds}`;
+  // New function using moment to format dates
+  function formatAppointmentTime(dateString, durationMinutes = 30) {
+    const startTime = moment(dateString);
+    const endTime = moment(dateString).add(durationMinutes, 'minutes');
+    
+    return {
+      start: startTime.format('YYYY-MM-DDTHH:mm:ss'),
+      end: endTime.format('YYYY-MM-DDTHH:mm:ss')
+    };
   }
-
 
   useEffect(() => {
     const newSchedule = upcomingAppointments.map((appointment, index) => {
+      const timeSlot = formatAppointmentTime(appointment.appointmentDate);
       return {
         id: appointment.id,
         calendarId: index + 1,
         title: `Appointment with ${appointment.patient.user.fullName}`,
         body: `<a class='bg-blue-700 p-2 rounded-md text-white' href='${appointment.link}' target='_blank'>Join now</a>`,
         category: "time",
-        start: addMinutesAndFormatUTC(appointment.appointmentDate, 0),
-        end: addMinutesAndFormatUTC(appointment.appointmentDate, 30),
+        start: timeSlot.start,
+        end: timeSlot.end,
       };
     });
     console.log("new", newSchedule);
-    setSchedules(newSchedule)
-  }, [upcomingAppointments])
-
+    setSchedules(newSchedule);
+  }, [upcomingAppointments]);
+  
+  // Function to generate time slots using moment
+  function generateTimeSlots(
+    start: string,
+    end: string,
+    day: string
+  ): { start: number; end: number }[] {
+    // Find the next occurrence of the given weekday
+    let referenceDate = moment().day(day);
+    if (moment().isAfter(referenceDate, "day")) {
+      referenceDate = referenceDate.add(7, "days"); // Move to next week's day if needed
+    }
+    
+    // Set start and end times on that day
+    const startTime = referenceDate.clone().set({
+      hour: parseInt(start.split(":")[0]),
+      minute: parseInt(start.split(":")[1]),
+      second: 0,
+      millisecond: 0,
+    });
+    
+    const endTime = referenceDate.clone().set({
+      hour: parseInt(end.split(":")[0]),
+      minute: parseInt(end.split(":")[1]),
+      second: 0,
+      millisecond: 0,
+    });
+    
+    // Generate slots
+    const slots: { start: number; end: number }[] = [];
+    let slot = startTime.clone();
+    
+    while (slot.isBefore(endTime)) {
+      let slotEnd = slot.clone().add(30, "minutes"); // Create a 30-minute slot
+      slots.push({ start: slot.unix(), end: slotEnd.unix() });
+      slot = slotEnd;
+    }
+    
+    return slots;
+  }
 
   return (
-    <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto"> {/* Adjusted for dynamic height */}
+    <div className="flex flex-1 flex-col min-h-screen pb-28 overflow-y-auto">
       {
         loading ? <div className='flex items-center justify-center w-full h-[80svh]'>
           <l-cardio
@@ -150,34 +174,21 @@ function GreetCard({ doctor, upcoming }: { doctor: any; upcoming: number }) {
         </div>
       </div>
     </div>
-    <img className="h-64 w-64 object-cover rounded-xl" src={doctor?.user?.profilePic ? doctor?.user?.profilePic : doctorPic} alt="" /> {/* Corrected to vh */}
-
+    <img className="h-64 w-64 object-cover rounded-xl" src={doctor?.user?.profilePic ? doctor?.user?.profilePic : doctorPic} alt="" />
   </div>
 }
 
 function PatientList({ upcomingAppointments }: { upcomingAppointments: any }) {
+  // Updated to use moment
   function formatDateTime(dateString: Date) {
-    const date = new Date(dateString);
-
-    // Options to format the date as "Mon Oct 28 2024, 7:00 PM"
-    const options = {
-      weekday: "short", // "Mon"
-      year: "numeric", // "2024"
-      month: "short", // "Oct"
-      day: "numeric", // "28"
-      hour: "numeric", // "7"
-      minute: "numeric", // "00"
-      hour12: true, // "PM"
-      timeZone: "UTC", // Keep it in UTC
-    };
-
-    // Format the date using the options
-    return date.toLocaleString("en-US", options);
+    return moment(dateString).format('ddd MMM D YYYY, h:mm A');
   }
+  
   return <div className="bg-white rounded-xl p-4 shadow-lg border">
     <h1 className="font-bold text-2xl pb-4">Upcoming Appointments</h1>
-    <div className="grid grid-cols-1 gap-4 h-[60svh] overflow-y-scroll">
+    <div className="grid grid-cols-1 gap-4 min-h-[40svh] max-h-[60svh] overflow-y-scroll">
       {
+        upcomingAppointments.length === 0 ? <h1 className="text-center font-extrabold text-gray-400 text-3xl">No upcoming appointments</h1> :
         upcomingAppointments.map((appointment) => (
           <div key={appointment.id} className='flex items-center gap-5 border-t pt-3'>
             <img src={appointment.patient.profilePic ? appointment.patient.profilePic : defaultProfilePic} alt={appointment.patient.fullName} className='w-36 h-36 object-contain rounded-lg' />
@@ -210,43 +221,51 @@ function PatientList({ upcomingAppointments }: { upcomingAppointments: any }) {
   </div>
 }
 
-
 function PastPatients({doctorName}) {
   const [pastAppointments, setPastAppointments] = useState([])
+  
   const getPastAppointments = async () => {
     const res = await axios.post(`http://localhost:4000/appointment/getPastAppointments/${localStorage.getItem('userId')}`, {
-      date: new Date().toISOString()
+      date: moment().format() // Using moment format instead of toISOString
     })
     console.log(res.data);
     setPastAppointments(res.data.appointments)
   }
+  
   useEffect(() => {
     getPastAppointments()
   }, [])
 
+  // Updated to use moment
   const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString(); // Converts to local date and time
+    return moment(dateString).format('MMMM D, YYYY, h:mm A');
   };
+  
   return (
     <div className="">
       <h1 className="font-bold text-2xl pb-4">Past Appointments</h1>
       <div className="grid grid-cols-1 gap-4 max-h-[102svh] overflow-y-scroll">
         {
+          pastAppointments.length === 0 ? <h1 className="text-center font-extrabold text-gray-400 text-3xl">No past appointments</h1> :
           pastAppointments.map((appointment) => (
             <div key={appointment.id} className='flex items-center gap-5 border-t pt-3 h-56'>
               <img src={defaultProfilePic} alt={appointment.patient.user.fullName} className='w-32 h-32 object-contain rounded-lg' />
               <div className='w-full flex flex-col justify-between items-center'>
                 <div className="w-full">
-                  <h1 className='text-xl font-bold'>{appointment.patient.user.fullName}</h1>
+                  <h1 className='text-xl font-bold flex gap-2'>
+                    {appointment.patient.user.fullName}
+
+                    <a href={`http://localhost:3000/patient-profile/${appointment.patient.userId}`} target="_blank" className='text-blue-500'>
+                    <ExternalLinkIcon className="text-blue-500" />
+                    </a>
+                  </h1>
                   <h2 className='flex items-center gap-2 mt-2'><IoCalendar /> {
                     formatDateTime(appointment.appointmentDate)
                   }</h2>
                   <h2>{appointment.type == 'online' ?
                     <span className='flex items-center gap-2'><RiRadioButtonLine /> Online Appointment</span> :
                     <span className='flex items-center gap-2'><MdPeople /> Clinic Appointment</span>}</h2>
-                  {/* <h2 className='mt-2'>Health Concerns: {patient.healthConcern}</h2> */}
                 </div>
-
 
                 {
                   appointment.medicalRecords.length > 0 ?
@@ -260,13 +279,6 @@ function PastPatients({doctorName}) {
                     <DialogContent className="mx-auto p-6 overflow-y-scroll h-[90vh]">
                       
                       <Prescription date={appointment.appointmentDate} prescriptionDetails={appointment.medicalRecords[0]} PatientName={appointment.patient.user.fullName} DoctorName={doctorName}/>
-                      {/* <DialogHeader>
-                        <DialogTitle>Are you absolutely sure?</DialogTitle>
-                        <DialogDescription>
-                          This action cannot be undone. This will permanently delete your account
-                          and remove your data from our servers.
-                        </DialogDescription>
-                      </DialogHeader> */}
                     </DialogContent>
                   </Dialog> :
                     <Dialog>
@@ -279,20 +291,9 @@ function PastPatients({doctorName}) {
                     <DialogContent className="mx-auto p-6 overflow-y-scroll h-[90vh]">
                       
                       <PrescriptionForm DoctorName={doctorName} healthConcern={appointment.healthConcern} doctorId={appointment.doctorId} patientId={appointment.patient.id} appointmentId={appointment.id} Date={formatDateTime(appointment.appointmentDate)} PatientName={appointment.patient.user.fullName}/>
-                      {/* <DialogHeader>
-                        <DialogTitle>Are you absolutely sure?</DialogTitle>
-                        <DialogDescription>
-                          This action cannot be undone. This will permanently delete your account
-                          and remove your data from our servers.
-                        </DialogDescription>
-                      </DialogHeader> */}
                     </DialogContent>
                   </Dialog>
-
                 }
-
-                
-
               </div>
             </div>
           ))
@@ -302,14 +303,11 @@ function PastPatients({doctorName}) {
   )
 }
 
-
-
 function PrescriptionForm({DoctorName, PatientName, doctorId, patientId, appointmentId, Date, healthConcern}) {
   const [medicines, setMedicines] = useState([{ name: "", dosage: "", frequency: "" }]);
-
   const [instructions, setInstructions] = useState("");
-
   const [newHealthConcern, setNewHealthConcern] = useState(healthConcern);
+  const [file, setFile] = useState(null);
 
   const addMedicine = () => {
     setMedicines([...medicines, { name: "", dosage:"", frequency: "" }]);
@@ -325,7 +323,6 @@ function PrescriptionForm({DoctorName, PatientName, doctorId, patientId, appoint
     );
     setMedicines(updatedMedicines);
   };
-  const [file, setFile] = useState(null);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -421,7 +418,6 @@ function PrescriptionForm({DoctorName, PatientName, doctorId, patientId, appoint
           <Button type="button" onClick={addMedicine} className="w-full bg-blue-600 hover:bg-blue-700">+ Add Medicine</Button>
 
           <textarea placeholder="Additional Instructions" onChange={(e) => setInstructions(e.target.value)} className="w-full p-2 border rounded-md" />
-
 
           <h3 className="text-xl font-medium mt-4">Upload Prescription</h3>
 

@@ -71,7 +71,7 @@ const getMedicalRecords = async (req: Request, res: Response) => {
     ) {
       const medicalRecords =
         await medicalService.getAllMedicalRecordsForPatient(Number(patient.id));
-      return res.json(medicalRecords);
+        return res.json({ medicalRecords, hasAccess: true });
     }
     if (!doctor) {
       return res.json([]); // Return empty array if the user is not a patient
@@ -83,7 +83,10 @@ const getMedicalRecords = async (req: Request, res: Response) => {
       Number(doctor.id)
     );
 
-    return res.json({ medicalRecords, hasAccess: !!accessDoctorId });
+    return res.json({
+      medicalRecords,
+      hasAccess: Number(accessDoctorId) == Number(requestingUserId),
+    });
   } catch (error) {
     console.error("Error fetching medical records:", error);
     return res.status(500).json({ error: "Internal server error" });

@@ -22,6 +22,7 @@ import toast from 'react-hot-toast'
 
 const Profile = () => {
   const userId = (() => localStorage.getItem('userId'))()
+  const [userHasAccess, setUserHasAccess] = useState(false)
   const id = useParams().id
   const [patient, setPatient] = useState();
   const [loading, setLoading] = useState(true)
@@ -33,7 +34,8 @@ const Profile = () => {
       requestingUserId: userId
     })
     console.log("medical records", res.data);
-    setMedicalRecords(res.data)
+    setMedicalRecords(res.data.medicalRecords)
+    setUserHasAccess(res.data.hasAccess)
   }
   const getPatient = async () => {
     const res = await axios.post(`http://localhost:4000/user/get-patient`, {
@@ -120,26 +122,45 @@ const Profile = () => {
 
           <div className='border p-5 rounded-lg mt-5 max-h-[100svh] overflow-y-auto'>
             {
-              localStorage.getItem('role') === 'doctor' &&
+              localStorage.getItem('role') === 'doctor'&& !userHasAccess &&
               <div className='w-full h-[40svh] border rounded-lg flex flex-col p-5 mb-5'>
-                <h1 className='text-3xl w-full font-bold text-center mb-5'>Your Prescriptions</h1>
+                <h1 className='text-3xl w-full font-bold text-center mb-5'>Prescriptions given by you</h1>
                 <div className='gap-2 flex flex-col'>
-                {
-                  medicalRecords.map((record, index) => (
-                    <PrescriptionCard key={index} record={record} />
-                  ))
-                }
+                  {
+                    medicalRecords.length === 0 ? <h1 className='text-center text-xl font-bold'>No Medical Records Found</h1> :
+                    medicalRecords
+                      .map((record, index) => (
+                        <PrescriptionCard key={index} record={record} />
+                      ))
+                  }
                 </div>
               </div>
             }
 
-
-            <div className='w-full h-[40svh] border rounded-lg flex flex-col items-center justify-center'>
-              <h1 className='text-center font-bold text-xl mb-3 mt-5'>{patient?.user?.fullName}'s Medical Records</h1>
-              <h1 className='text-3xl font-bold text-gray-300 max-w-2xl text-center mb-5'>{patient?.user?.fullName}'s Medical Records Not Accessible</h1>
-              <Button className='bg-blue-500 hover:bg-blue-600' onClick={sendRequest}>Request Access</Button>
-            </div>
+            {/* Show all records only if the doctor has access */}
+            {
+              userHasAccess ? (
+                <div className='w-full h-[40svh] border rounded-lg flex flex-col p-5 mb-5'>
+                  <h1 className='text-3xl w-full font-bold text-center mb-5'>{patient?.user?.fullName}'s Medical Records</h1>
+                  <div className='gap-2 flex flex-col'>
+                    {
+                      medicalRecords.length === 0 ? <h1 className='text-center text-xl font-bold'>No Medical Records Found</h1> :
+                      medicalRecords.map((record, index) => (
+                        <PrescriptionCard key={index} record={record} />
+                      ))
+                    }
+                  </div>
+                </div>
+              ) : (
+                <div className='w-full h-[40svh] border rounded-lg flex flex-col items-center justify-center'>
+                  <h1 className='text-center font-bold text-xl mb-3 mt-5'>{patient?.user?.fullName}'s Medical Records</h1>
+                  <h1 className='text-3xl font-bold text-gray-300 max-w-2xl text-center mb-5'>{patient?.user?.fullName}'s Medical Records Not Accessible</h1>
+                  <Button className='bg-blue-500 hover:bg-blue-600' onClick={sendRequest}>Request Access</Button>
+                </div>
+              )
+            }
           </div>
+
         </>}
 
     </div>
@@ -162,18 +183,18 @@ function PrescriptionCard({ record }) {
         </div>
       </div>
       <div className='w-1/4 flex items-center justify-end'>
-      <Dialog>
-        <DialogTrigger className="w-full">
-          <button className='mt-3 text-white text-sm bg-blue-500 text-center justify-center px-4 rounded-lg py-2 flex gap-2 items-center'>
-            View Prescription
-            <FaExternalLinkAlt />
-          </button>
-        </DialogTrigger>
-        <DialogContent className="mx-auto p-6 overflow-y-scroll h-[90vh]">
+        <Dialog>
+          <DialogTrigger className="w-full">
+            <button className='mt-3 text-white text-sm bg-blue-500 text-center justify-center px-4 rounded-lg py-2 flex gap-2 items-center'>
+              View Prescription
+              <FaExternalLinkAlt />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="mx-auto p-6 overflow-y-scroll h-[90vh]">
 
-          <Prescription date={record.appointment.appointmentDate} prescriptionDetails={record} PatientName={record.patient.user.fullName} DoctorName={record.doctor.user.fullName} />
-        </DialogContent>
-      </Dialog>
+            <Prescription date={record.appointment.appointmentDate} prescriptionDetails={record} PatientName={record.patient.user.fullName} DoctorName={record.doctor.user.fullName} />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

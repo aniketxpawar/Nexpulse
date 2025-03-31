@@ -125,6 +125,9 @@ const getAppointments = async (userId: number, role: Role) => {
     where: {
       ...whereClause, // Apply the constructed ⁠ where ⁠ clause
       status: "scheduled",
+      appointmentDate: {
+        gt: new Date(), // Ensure appointmentDate is greater than the current time
+      },
     },
     include: {
       doctor: {

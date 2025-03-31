@@ -9,14 +9,8 @@ import { FaStar } from "react-icons/fa";
 import { cardio } from 'ldrs'
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { addMinutes, format, parseISO, set } from 'date-fns';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import moment from 'moment'; // Import moment
 
-// Convert local time to UTC
-const convertLocalToUTC = (date) => {
-  if (!date) return null;
-  return zonedTimeToUtc(date, 'UTC'); // Convert local time to UTC
-};
 
 const LabelInputContainer = ({
   children,
@@ -33,8 +27,6 @@ const LabelInputContainer = ({
 };
 cardio.register()
 
-// Default values shown
-
 import {
   Popover,
   PopoverContent,
@@ -47,6 +39,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { doctorPic } from '@/assets/defaultProfiles';
+
 const doctorProfile = () => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -65,13 +58,14 @@ const doctorProfile = () => {
       "Friday",
       "Saturday",
     ];
-    const localDay = days[new Date(date).getDay()];
+    // Use moment to get the day of week
+    const localDay = moment(date).format('dddd');
 
     const res = await axios.post(
       "http://localhost:4000/appointment/get-slots",
       {
         doctorId: id,
-        date: date,
+        date: moment(date).format('YYYY-MM-DD'), // Format date for API
         day: localDay,
       }
     );
@@ -79,7 +73,9 @@ const doctorProfile = () => {
     setTimeSlots(res.data.availableSlots)
     setLoading(false)
   }
+  
   const [chatId, setChatId] = useState(null)
+  
   const fetchDoctorDetails = async () => {
     const res = await axios.post('http://localhost:4000/user/get-doctor', {
       doctorId: id,
@@ -89,9 +85,10 @@ const doctorProfile = () => {
     setDoctor(res.data.doctor)
     setChatId(res.data.chatId)
   }
+  
   useEffect(() => {
     fetchDoctorDetails()
-    setDate(new Date())
+    setDate(new Date()) // Keep using Date object for the Calendar component
   }, [])
 
   const [date, setDate] = useState<any>()
@@ -103,21 +100,22 @@ const doctorProfile = () => {
     }
   }, [date])
 
+  // This function is no longer needed since we're using Moment.js
+  // But keeping it with moment implementation for reference
   const createCombinedDate = ({ date, selectedTimeSlot }) => {
-
-    // Get year, month, and day from the date state
-    const year = date.getFullYear();
-    const month = date.getMonth(); // Note: month is 0-indexed (0 = January)
-    const day = date.getDate();
-
-    // Get hours and minutes from the selectedTimeSlot
-    const hours = new Date(selectedTimeSlot).getHours();
-    const minutes = new Date(selectedTimeSlot).getMinutes();
-
-    // Create a new Date object combining both date and time
-    const combinedDate = new Date(year, month, day, hours, minutes);
-
-    // Log the combined date
+    // Convert date to moment
+    const dateMoment = moment(date);
+    
+    // Get the time from selectedTimeSlot (assuming it's a unix timestamp)
+    const timeMoment = moment.unix(selectedTimeSlot.start);
+    
+    // Set the hours and minutes from timeMoment to dateMoment
+    const combinedDate = dateMoment
+      .hours(timeMoment.hours())
+      .minutes(timeMoment.minutes())
+      .seconds(0)
+      .milliseconds(0);
+      
     return combinedDate;
   };
 
@@ -128,14 +126,15 @@ const doctorProfile = () => {
       return;
     }
     try {
-      // const localAppointmentDate = createCombinedDate({ date, selectedTimeSlot });
-      // const utcAppointmentDate = convertLocalToUTC(localAppointmentDate);
-  
+      // Use moment to create the appointment date
+      // If selectedTimeSlot is a Unix timestamp
+      const appointmentDate = moment.unix(selectedTimeSlot.start).format();
+      
       const res = await axios.post('http://localhost:4000/appointment/createAppointment', {
         userId: localStorage.getItem('userId'),
         doctorId: id,
         patientId: localStorage.getItem('userId'),
-        appointmentDate: date, // Send UTC time to backend
+        appointmentDate: appointmentDate, // Send formatted date to backend
         type: type,
         healthConcern: healthConcern
       });
@@ -149,8 +148,8 @@ const doctorProfile = () => {
   };
 
   const [booking, setBooking] = useState(false)
-  const [timeSlots, setTimeSlots] = useState<string[]>([])
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>()
+  const [timeSlots, setTimeSlots] = useState<any[]>([])
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<any>()
   const [type, setType] = useState('offline');
   const [healthConcern, setHealthConcern] = useState('')
 
@@ -172,6 +171,7 @@ const doctorProfile = () => {
       }
     }
   }
+  
   return (
     <div className="max-w-7xl mx-auto w-full mt-10 min-h-[80svh]">
       {loading ? (
@@ -318,7 +318,7 @@ const doctorProfile = () => {
                         >
                           <CalendarIcon className="mr-2" />
                           {date ? (
-                            format(date, "PPP")
+                            moment(date).format('MMM D, YYYY') // Use moment formatting
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -339,26 +339,20 @@ const doctorProfile = () => {
                         <h1 className="mt-3">Available Time Slots:</h1>
                         <div className="grid grid-cols-3 gap-3 mt-5">
                           {
-                            // @ts-ignore
+                            // Map through time slots
                             timeSlots.map((slot) => {
                               if (!slot) return null; // Skip if slot is undefined
-                              const date = new Date(slot.start);
-
-                              // Convert to local time (12-hour format with AM/PM)
-                              const timeWithAMPM = date.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true, // Ensures AM/PM format
-                              });
+                              
+                              // Convert unix timestamp to local time format using moment
+                              const timeWithAMPM = moment.unix(slot.start).format('h:mm A');
 
                               return (
                                 <Button
-                                  key={slot.start} // Use slot.start instead of slot as key
+                                  key={slot.start}
                                   onClick={() => {
                                     setSelectedTimeSlot(slot);
                                   }}
-                                  className={`hover:bg-blue-500 ${selectedTimeSlot == slot ? "bg-blue-700" : "bg-blue-400"
-                                    }`}
+                                  className={`hover:bg-blue-500 ${selectedTimeSlot?.start === slot.start ? "bg-blue-700" : "bg-blue-400"}`}
                                 >
                                   {timeWithAMPM}
                                 </Button>
@@ -385,7 +379,7 @@ const doctorProfile = () => {
                           disabled={booking}
                           onClick={() => {
                             setBooking(true);
-                            setType("online");
+                            setType("offline");
                             allotTimeSlot();
                           }}
                         >
@@ -420,7 +414,7 @@ const doctorProfile = () => {
                         >
                           <CalendarIcon className="mr-2" />
                           {date ? (
-                            format(date, "PPP")
+                            moment(date).format('MMM D, YYYY') // Use moment formatting
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -441,37 +435,20 @@ const doctorProfile = () => {
                         <h1 className="mt-3">Available Time Slots:</h1>
                         <div className="grid grid-cols-3 gap-3 mt-5">
                           {
-                            // @ts-ignore
+                            // Map through time slots
                             timeSlots.map((slot) => {
                               if (!slot) return null; // Skip if slot is undefined
-                              const date = new Date(slot);
-
-                              // Get hours and minutes
-                              let hours = date.getUTCHours();
-                              const minutes = date
-                                .getUTCMinutes()
-                                .toString()
-                                .padStart(2, "0");
-
-                              // Determine AM or PM
-                              const ampm = hours >= 12 ? "PM" : "AM";
-
-                              // Convert 24-hour format to 12-hour format
-                              hours = hours % 12 || 12; // Convert 0 to 12 for midnight case
-
-                              // Format the time as "h:mm AM/PM"
-                              const timeWithAMPM = `${hours}:${minutes} ${ampm}`;
+                              
+                              // Convert unix timestamp to local time format
+                              const timeWithAMPM = moment.unix(slot.start).format('h:mm A');
 
                               return (
                                 <Button
-                                  key={slot}
+                                  key={slot.start}
                                   onClick={() => {
                                     setSelectedTimeSlot(slot);
                                   }}
-                                  className={`hover:bg-blue-500 ${selectedTimeSlot == slot
-                                      ? "bg-blue-700"
-                                      : "bg-blue-400"
-                                    }`}
+                                  className={`hover:bg-blue-500 ${selectedTimeSlot?.start === slot.start ? "bg-blue-700" : "bg-blue-400"}`}
                                 >
                                   {timeWithAMPM}
                                 </Button>

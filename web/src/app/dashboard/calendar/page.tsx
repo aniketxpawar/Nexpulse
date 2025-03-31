@@ -20,59 +20,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import dynamic from 'next/dynamic';
+import moment from 'moment';
 
 import MyTUICalendar from "@/components/common/calendar";
 import axios from "axios"
 import { Pencil } from "lucide-react"
 
-const TimeRange = dynamic(() => import('react-time-range'), { ssr: false });
-
-const splitTimeRange = (start, end, duration) => {
-  const slots = [];
-  let current = new Date(start);
-  const endTime = new Date(end);
-
-  while (current < endTime) {
-    const nextSlot = new Date(current.getTime() + duration * 60000);
-    if (nextSlot > endTime) break;
-    slots.push({
-      start: current.toTimeString().slice(0, 5),
-      end: nextSlot.toTimeString().slice(0, 5),
-    });
-    current = nextSlot;
-  }
-  return slots;
-};
-
 export default function CalendarPage() {
-  const currentDate = new Date();
-  currentDate.setMinutes(currentDate.getMinutes() + 30);
+  const currentDate = moment().add(30, 'minutes');
 
-  // const schedules = [
-  //   {
-  //     id: "1",
-  //     calendarId: "1",
-  //     title: "Meeting",
-  //     body: "<a class='bg-blue-700 p-2 rounded-md text-white' href='http://www.google.com' target='_blank'>Join now</a>",
-  //     category: "time",
-  //     dueDateClass: "",
-  //     start: "2024-10-21T10:30:00",
-  //     end: "2024-10-21T11:00:00",
-  //   },
-  //   {
-  //     id: "2",
-  //     calendarId: "1",
-  //     title: "Conference",
-  //     category: "time",
-  //     dueDateClass: "",
-  //     start: "2024-10-22T09:00:00",
-  //     end: "2024-10-22T11:00:00",
-  //   },
-  // ];
   const userId = (() => localStorage.getItem('userId'))()
   const getAppointments = async () => {
     const res = await axios.get(`http://localhost:4000/appointment/getAppointments/${userId}`)
-    // console.log(res.data);
     setUpcomingAppointments(res.data)
     setLoading(false)
   }
@@ -87,22 +46,11 @@ export default function CalendarPage() {
   // Update setSelectedViewType to use the correct function that updates the state
   const setSelectedViewType = (view: string) => setSelectedView(view);
   const [schedules, setSchedules] = useState([])
-  function addMinutesAndFormatUTC(utcDateString: string, minutes: number): string {
-    const date = new Date(utcDateString); // Convert UTC string to Date object
-
-    // Add the specified minutes
-    date.setUTCMinutes(date.getUTCMinutes() + minutes);
-
-    // Format the date components to ensure they are two digits
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutesFormatted = String(date.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutesFormatted}:${seconds}`;
+  
+  // Updated to use moment instead of manual date manipulation
+  function formatAppointmentTime(dateString: string, minutesToAdd: number): string {
+    return moment(dateString).add(minutesToAdd, 'minutes').format('YYYY-MM-DDTHH:mm:ss');
   }
-
 
   useEffect(() => {
     const newSchedule = upcomingAppointments.map((appointment, index) => {
@@ -112,8 +60,8 @@ export default function CalendarPage() {
         title: `Appointment with ${appointment.patient.user.fullName}`,
         body: `<a class='bg-blue-700 p-2 rounded-md text-white' href='${appointment.link}' target='_blank'>Join now</a>`,
         category: "time",
-        start: addMinutesAndFormatUTC(appointment.appointmentDate, 0),
-        end: addMinutesAndFormatUTC(appointment.appointmentDate, 30),
+        start: formatAppointmentTime(appointment.appointmentDate, 0),
+        end: formatAppointmentTime(appointment.appointmentDate, 30),
       };
     });
     console.log("new", newSchedule);
@@ -122,13 +70,11 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-1 h-auto pb-28">
-
       <div className="p-2 md:p-10 rounded-2xl border flex flex-col gap-5 border-neutral-200 bg-white w-full h-full">
         <div className="border p-5 rounded-xl flex flex-col gap-5">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Set Your Availability for the Week</h1>
           </div>
-          {/* <MyTUICalendar prop={'week'} schedules={schedules} /> */}
           <WeekSchedule />
         </div>
         <div className="border p-5 rounded-xl flex flex-col gap-5">
@@ -164,9 +110,6 @@ export function DropdownMenuCheckboxes({ ViewType, setSelectedViewType }: { View
     </DropdownMenu>
   )
 }
-
-
-
 
 const WeekSchedule = () => {
   const days = [
@@ -212,17 +155,18 @@ const WeekSchedule = () => {
     fetchAvailability();
   }, []);
 
+  // Updated to use moment for time conversions
   const convertToLocalTime = (schedule) => {
     const convertedSchedule = {};
 
     for (const [day, slots] of Object.entries(schedule)) {
       convertedSchedule[day] = slots.map(slot => {
         if (typeof slot === "string") {
-          return new Date(slot).toLocaleString();
+          return moment(slot).format('LLL');
         } else if (typeof slot === "object" && slot.start && slot.end) {
           return {
-            start: new Date(slot.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            end: new Date(slot.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            start: moment(slot.start).format('HH:mm'),
+            end: moment(slot.end).format('HH:mm'),
           };
         }
         return slot;
@@ -250,30 +194,19 @@ const WeekSchedule = () => {
     setTempTimes(tempTimes.filter((_, i) => i !== index));
   };
 
+  // Updated to use moment for time handling and slot generation
   const handleSaveAvailability = async (day) => {
-    if (tempTimes.some(({ start, end }) => new Date(`1970-01-01T${start}:00`) >= new Date(`1970-01-01T${end}:00`))) {
+    if (tempTimes.some(({ start, end }) => 
+      moment(start, 'HH:mm').isSameOrAfter(moment(end, 'HH:mm'))
+    )) {
       alert("Invalid time slots: start time must be earlier than end time");
       return;
     }
 
-    const generatedSlots = tempTimes.flatMap(({ start, end }) => {
-      const slots = [];
-      const now = new Date();
-      const current = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...start.split(":").map(Number));
-      const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...end.split(":").map(Number));
-      const durationMs = duration * 60 * 1000;
-
-      while (current < endTime) {
-        const next = new Date(current.getTime() + durationMs);
-        if (next > endTime) break;
-        slots.push({
-          start: current.toISOString(),
-          end: next.toISOString(),
-        });
-        current.setTime(next.getTime());
-      }
-      return slots;
-    });
+    // Generate slots using moment
+    const generatedSlots = tempTimes.flatMap(({ start, end }) => 
+      generateTimeSlots(start, end, day)
+    );
 
     setAvailability((prev) => ({
       ...prev,
@@ -290,6 +223,52 @@ const WeekSchedule = () => {
       console.error("Error saving generated slots:", error);
     }
   };
+
+  // New function using moment as per your example
+  function generateTimeSlots(
+    start: string,
+    end: string,
+    day: string
+  ): { start: string; end: string }[] {
+    // Find the next occurrence of the given weekday
+    let referenceDate = moment().day(day);
+    if (moment().isAfter(referenceDate, "day")) {
+      referenceDate = referenceDate.add(7, "days"); // Move to next week's day if needed
+    }
+    
+    // Set start and end times on that day
+    const startTime = referenceDate.clone().set({
+      hour: parseInt(start.split(":")[0]),
+      minute: parseInt(start.split(":")[1]),
+      second: 0,
+      millisecond: 0,
+    });
+    
+    const endTime = referenceDate.clone().set({
+      hour: parseInt(end.split(":")[0]),
+      minute: parseInt(end.split(":")[1]),
+      second: 0,
+      millisecond: 0,
+    });
+    
+    // Generate slots
+    const slots: { start: string; end: string }[] = [];
+    let slot = startTime.clone();
+    
+    while (slot.isBefore(endTime)) {
+      let slotEnd = slot.clone().add(duration, "minutes"); // Create slots of specified duration
+      if (slotEnd.isAfter(endTime)) break;
+      
+      slots.push({ 
+        start: slot.toISOString(), 
+        end: slotEnd.toISOString() 
+      });
+      
+      slot = slotEnd;
+    }
+    
+    return slots;
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-1">
