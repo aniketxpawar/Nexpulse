@@ -5,7 +5,7 @@ const router = Router()
 
 router.post('/get-slots', appointmentController.getAvailableSlots);
 router.post('/createAppointment', appointmentController.createAppointment);
-router.get('/getAppointments/:userId', appointmentController.getAppointments);
+router.post("/getAppointments/:userId", appointmentController.getAppointments);
 router.post(
   "/getPastAppointments/:userId",
   appointmentController.getPastAppointments

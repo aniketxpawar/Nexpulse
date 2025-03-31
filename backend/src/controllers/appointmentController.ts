@@ -146,6 +146,7 @@ const createAppointment = async (req: Request, res: Response) => {
 
 const getAppointments = async (req: Request, res: Response) => {
   const { userId } = req.params;
+  const { date } = req.body;
 
   try {
     // Fetch appointments for the given userId (as doctor or patient)
@@ -159,13 +160,17 @@ const getAppointments = async (req: Request, res: Response) => {
       appointments =
         (await appointmentService.getAppointments(
           user.patient.id,
-          "patient"
+          "patient",
+          date
         )) || [];
     } else if (user.role === "doctor" && user.doctor) {
       // Check if the user has a doctor record
       appointments =
-        (await appointmentService.getAppointments(user.doctor.id, "doctor")) ||
-        [];
+        (await appointmentService.getAppointments(
+          user.doctor.id,
+          "doctor",
+          date
+        )) || [];
     }
 
     res.status(200).json(appointments);

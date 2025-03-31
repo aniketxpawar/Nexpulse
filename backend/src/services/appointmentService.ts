@@ -116,7 +116,7 @@ const createAppointmentRecord = async (
   });
 };
 
-const getAppointments = async (userId: number, role: Role) => {
+const getAppointments = async (userId: number, role: Role, date: number) => {
   // Construct the ⁠ where ⁠ clause based on the user's role
   const whereClause =
     role === Role.patient ? { patientId: userId } : { doctorId: userId };
@@ -125,6 +125,9 @@ const getAppointments = async (userId: number, role: Role) => {
     where: {
       ...whereClause, // Apply the constructed ⁠ where ⁠ clause
       status: "scheduled",
+      appointmentDate: {
+        gt: date,
+      },
     },
     include: {
       doctor: {
